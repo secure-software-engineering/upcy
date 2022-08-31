@@ -2,7 +2,7 @@ package de.upb.upcy.update.recommendation;
 
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

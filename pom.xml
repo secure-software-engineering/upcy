@@ -260,7 +260,7 @@
         </dependency>
 
         <dependency>
-            <groupId>de.upb.thetis</groupId>
+            <groupId>de.upb.upcy.base</groupId>
             <artifactId>thetis-project-pipeline</artifactId>
             <version>0.7.1-SNAPSHOT</version>
         </dependency>

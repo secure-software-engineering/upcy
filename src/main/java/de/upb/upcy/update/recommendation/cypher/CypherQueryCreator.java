@@ -1,6 +1,6 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
 import java.util.ArrayDeque;

@@ -1,6 +1,6 @@
 package de.upb.upcy.update.build;
 
-import de.upb.thetis.mvn.MavenInvokerProject;
+import de.upb.upcy.base.mvn.MavenInvokerProject;
 import edu.emory.mathcs.backport.java.util.Collections;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

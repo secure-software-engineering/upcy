@@ -1,6 +1,6 @@
 package de.upb.upcy.update.recommendation;
 
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import java.util.Set;
 import lombok.Data;
 

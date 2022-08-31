@@ -1,6 +1,6 @@
 package de.upb.upcy.update.build;
 
-import de.upb.thetis.mvn.MavenInvokerProject;
+import de.upb.upcy.base.mvn.MavenInvokerProject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

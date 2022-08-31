@@ -2,7 +2,7 @@ package de.upb.upcy.update.recommendation.cypher;
 
 import static java.util.stream.Collectors.groupingBy;
 
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import java.util.ArrayList;
 import java.util.Collection;

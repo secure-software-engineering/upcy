@@ -1,6 +1,6 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 

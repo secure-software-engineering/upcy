@@ -3,7 +3,7 @@ package de.upb.upcy.update.dockerize;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Delivery;
-import de.upb.thetis.Utils;
+import de.upb.upcy.base.build.Utils;
 import de.upb.upcy.update.process.ComputeRecommendationProcess;
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import edu.emory.mathcs.backport.java.util.Collections;
 import java.util.Collection;
 

@@ -3,7 +3,7 @@ package de.upb.upcy.update.recommendation.check;
 import com.google.common.collect.Lists;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
-import de.upb.thetis.graph.GraphModel;
+import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.CompatabilityCheck;
 import de.upb.upcy.update.recommendation.CustomEdge;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
