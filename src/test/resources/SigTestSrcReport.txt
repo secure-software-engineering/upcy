@@ -1,0 +1,321 @@
+SignatureTest report
+Base version: 4.1.36.Final
+Tested version: 4.1.70.Final
+Check mode: src [throws normalized]
+Constant checking: on
+
+
+Missing Classes
+---------------
+
+io.netty.channel.AbstractServerChannel
+io.netty.channel.DefaultAddressedEnvelope
+io.netty.channel.DefaultEventLoop
+io.netty.channel.DefaultEventLoopGroup
+io.netty.channel.DelegatingChannelPromiseNotifier
+io.netty.channel.ServerChannel
+io.netty.channel.ThreadPerChannelEventLoop
+io.netty.channel.embedded.EmbeddedChannel
+io.netty.channel.local.LocalChannel
+io.netty.channel.local.LocalEventLoopGroup
+io.netty.channel.local.LocalServerChannel
+io.netty.channel.nio.AbstractNioByteChannel
+io.netty.channel.nio.AbstractNioChannel
+io.netty.channel.nio.AbstractNioMessageChannel
+io.netty.channel.nio.NioEventLoop
+io.netty.channel.nio.NioEventLoopGroup
+io.netty.channel.oio.AbstractOioByteChannel
+io.netty.channel.oio.AbstractOioChannel
+io.netty.channel.oio.AbstractOioMessageChannel
+io.netty.channel.oio.OioByteStreamChannel
+io.netty.channel.oio.OioEventLoopGroup
+io.netty.channel.socket.DatagramChannel
+io.netty.channel.socket.DuplexChannel
+io.netty.channel.socket.ServerSocketChannel
+io.netty.channel.socket.SocketChannel
+io.netty.channel.socket.nio.NioChannelOption
+io.netty.channel.socket.nio.NioDatagramChannel
+io.netty.channel.socket.nio.NioServerSocketChannel
+io.netty.channel.socket.nio.NioSocketChannel
+io.netty.channel.socket.oio.OioDatagramChannel
+io.netty.channel.socket.oio.OioServerSocketChannel
+io.netty.channel.socket.oio.OioSocketChannel
+
+Missing Superclasses or Superinterfaces
+---------------------------------------
+
+io.netty.buffer.ByteBufAllocator:       io.netty.channel.PreferHeapByteBufAllocator
+io.netty.buffer.ByteBufHolder:          io.netty.channel.socket.DatagramPacket
+io.netty.util.AbstractConstant:         io.netty.channel.ChannelOption
+io.netty.util.AbstractReferenceCounted: io.netty.channel.DefaultFileRegion
+io.netty.util.AttributeMap:             io.netty.channel.Channel
+io.netty.util.AttributeMap:             io.netty.channel.ChannelHandlerContext
+io.netty.util.DefaultAttributeMap:      io.netty.channel.AbstractChannel
+io.netty.util.ReferenceCounted:         io.netty.channel.AddressedEnvelope
+io.netty.util.ReferenceCounted:         io.netty.channel.FileRegion
+io.netty.util.concurrent.AbstractEventExecutor:             io.netty.channel.AbstractEventLoop
+io.netty.util.concurrent.AbstractEventExecutorGroup:        io.netty.channel.AbstractEventLoopGroup
+io.netty.util.concurrent.AbstractEventExecutorGroup:        io.netty.channel.ThreadPerChannelEventLoopGroup
+io.netty.util.concurrent.AbstractFuture:io.netty.channel.VoidChannelPromise
+io.netty.util.concurrent.DefaultProgressivePromise:         io.netty.channel.DefaultChannelProgressivePromise
+io.netty.util.concurrent.DefaultPromise:io.netty.channel.DefaultChannelPromise
+io.netty.util.concurrent.EventExecutorGroup:                io.netty.channel.EventLoopGroup
+io.netty.util.concurrent.Future:        io.netty.channel.ChannelFuture
+io.netty.util.concurrent.Future:        io.netty.channel.group.ChannelGroupFuture
+io.netty.util.concurrent.GenericFutureListener:             io.netty.channel.ChannelFutureListener
+io.netty.util.concurrent.GenericFutureListener:             io.netty.channel.group.ChannelGroupFutureListener
+io.netty.util.concurrent.GenericProgressiveFutureListener:  io.netty.channel.ChannelProgressiveFutureListener
+io.netty.util.concurrent.MultithreadEventExecutorGroup:     io.netty.channel.MultithreadEventLoopGroup
+io.netty.util.concurrent.OrderedEventExecutor:              io.netty.channel.EventLoop
+io.netty.util.concurrent.ProgressiveFuture:                 io.netty.channel.ChannelProgressiveFuture
+io.netty.util.concurrent.ProgressivePromise:                io.netty.channel.ChannelProgressivePromise
+io.netty.util.concurrent.Promise:       io.netty.channel.ChannelPromise
+io.netty.util.concurrent.PromiseAggregator:                 io.netty.channel.ChannelPromiseAggregator
+io.netty.util.concurrent.PromiseNotifier:                   io.netty.channel.ChannelPromiseNotifier
+io.netty.util.concurrent.SingleThreadEventExecutor:         io.netty.channel.SingleThreadEventLoop
+
+Missing Methods
+---------------
+
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method public final void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method public final void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+
+Added Classes
+-------------
+
+io.netty.channel.AbstractServerChannel
+io.netty.channel.DefaultAddressedEnvelope
+io.netty.channel.DefaultEventLoop
+io.netty.channel.DefaultEventLoopGroup
+io.netty.channel.DelegatingChannelPromiseNotifier
+io.netty.channel.EventLoopTaskQueueFactory
+io.netty.channel.ServerChannel
+io.netty.channel.ServerChannelRecvByteBufAllocator
+io.netty.channel.ThreadPerChannelEventLoop
+io.netty.channel.embedded.EmbeddedChannel
+io.netty.channel.local.LocalChannel
+io.netty.channel.local.LocalEventLoopGroup
+io.netty.channel.local.LocalServerChannel
+io.netty.channel.nio.AbstractNioByteChannel
+io.netty.channel.nio.AbstractNioChannel
+io.netty.channel.nio.AbstractNioMessageChannel
+io.netty.channel.nio.NioEventLoop
+io.netty.channel.nio.NioEventLoopGroup
+io.netty.channel.oio.AbstractOioByteChannel
+io.netty.channel.oio.AbstractOioChannel
+io.netty.channel.oio.AbstractOioMessageChannel
+io.netty.channel.oio.OioByteStreamChannel
+io.netty.channel.oio.OioEventLoopGroup
+io.netty.channel.socket.DatagramChannel
+io.netty.channel.socket.DuplexChannel
+io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.ServerSocketChannel
+io.netty.channel.socket.SocketChannel
+io.netty.channel.socket.nio.NioChannelOption
+io.netty.channel.socket.nio.NioDatagramChannel
+io.netty.channel.socket.nio.NioServerSocketChannel
+io.netty.channel.socket.nio.NioSocketChannel
+io.netty.channel.socket.oio.OioDatagramChannel
+io.netty.channel.socket.oio.OioServerSocketChannel
+io.netty.channel.socket.oio.OioSocketChannel
+
+Added Superclasses or Superinterfaces
+-------------------------------------
+
+io.netty.channel.socket.DefaultSocketChannelConfig:         interface io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.SocketChannelConfig:                interface @ io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.oio.OioSocketChannelConfig:         interface io.netty.channel.socket.DuplexChannelConfig
+
+Added Constructors
+------------------
+
+io.netty.channel.ChannelException:      constructor protected io.netty.channel.ChannelException.init(java.lang.String,java.lang.Throwable,boolean)
+io.netty.channel.PendingWriteQueue:     constructor public io.netty.channel.PendingWriteQueue.init(io.netty.channel.Channel)
+
+Added Methods
+-------------
+SignatureTest report
+Base version: 4.1.36.Final
+Tested version: 4.1.70.Final
+Check mode: src [throws normalized]
+Constant checking: on
+
+
+Missing Classes
+---------------
+
+io.netty.channel.AbstractServerChannel
+io.netty.channel.DefaultAddressedEnvelope
+io.netty.channel.DefaultEventLoop
+io.netty.channel.DefaultEventLoopGroup
+io.netty.channel.DelegatingChannelPromiseNotifier
+io.netty.channel.ServerChannel
+io.netty.channel.ThreadPerChannelEventLoop
+io.netty.channel.embedded.EmbeddedChannel
+io.netty.channel.local.LocalChannel
+io.netty.channel.local.LocalEventLoopGroup
+io.netty.channel.local.LocalServerChannel
+io.netty.channel.nio.AbstractNioByteChannel
+io.netty.channel.nio.AbstractNioChannel
+io.netty.channel.nio.AbstractNioMessageChannel
+io.netty.channel.nio.NioEventLoop
+io.netty.channel.nio.NioEventLoopGroup
+io.netty.channel.oio.AbstractOioByteChannel
+io.netty.channel.oio.AbstractOioChannel
+io.netty.channel.oio.AbstractOioMessageChannel
+io.netty.channel.oio.OioByteStreamChannel
+io.netty.channel.oio.OioEventLoopGroup
+io.netty.channel.socket.DatagramChannel
+io.netty.channel.socket.DuplexChannel
+io.netty.channel.socket.ServerSocketChannel
+io.netty.channel.socket.SocketChannel
+io.netty.channel.socket.nio.NioChannelOption
+io.netty.channel.socket.nio.NioDatagramChannel
+io.netty.channel.socket.nio.NioServerSocketChannel
+io.netty.channel.socket.nio.NioSocketChannel
+io.netty.channel.socket.oio.OioDatagramChannel
+io.netty.channel.socket.oio.OioServerSocketChannel
+io.netty.channel.socket.oio.OioSocketChannel
+
+Missing Superclasses or Superinterfaces
+---------------------------------------
+
+io.netty.buffer.ByteBufAllocator:       io.netty.channel.PreferHeapByteBufAllocator
+io.netty.buffer.ByteBufHolder:          io.netty.channel.socket.DatagramPacket
+io.netty.util.AbstractConstant:         io.netty.channel.ChannelOption
+io.netty.util.AbstractReferenceCounted: io.netty.channel.DefaultFileRegion
+io.netty.util.AttributeMap:             io.netty.channel.Channel
+io.netty.util.AttributeMap:             io.netty.channel.ChannelHandlerContext
+io.netty.util.DefaultAttributeMap:      io.netty.channel.AbstractChannel
+io.netty.util.ReferenceCounted:         io.netty.channel.AddressedEnvelope
+io.netty.util.ReferenceCounted:         io.netty.channel.FileRegion
+io.netty.util.concurrent.AbstractEventExecutor:             io.netty.channel.AbstractEventLoop
+io.netty.util.concurrent.AbstractEventExecutorGroup:        io.netty.channel.AbstractEventLoopGroup
+io.netty.util.concurrent.AbstractEventExecutorGroup:        io.netty.channel.ThreadPerChannelEventLoopGroup
+io.netty.util.concurrent.AbstractFuture:io.netty.channel.VoidChannelPromise
+io.netty.util.concurrent.DefaultProgressivePromise:         io.netty.channel.DefaultChannelProgressivePromise
+io.netty.util.concurrent.DefaultPromise:io.netty.channel.DefaultChannelPromise
+io.netty.util.concurrent.EventExecutorGroup:                io.netty.channel.EventLoopGroup
+io.netty.util.concurrent.Future:        io.netty.channel.ChannelFuture
+io.netty.util.concurrent.Future:        io.netty.channel.group.ChannelGroupFuture
+io.netty.util.concurrent.GenericFutureListener:             io.netty.channel.ChannelFutureListener
+io.netty.util.concurrent.GenericFutureListener:             io.netty.channel.group.ChannelGroupFutureListener
+io.netty.util.concurrent.GenericProgressiveFutureListener:  io.netty.channel.ChannelProgressiveFutureListener
+io.netty.util.concurrent.MultithreadEventExecutorGroup:     io.netty.channel.MultithreadEventLoopGroup
+io.netty.util.concurrent.OrderedEventExecutor:              io.netty.channel.EventLoop
+io.netty.util.concurrent.ProgressiveFuture:                 io.netty.channel.ChannelProgressiveFuture
+io.netty.util.concurrent.ProgressivePromise:                io.netty.channel.ChannelProgressivePromise
+io.netty.util.concurrent.Promise:       io.netty.channel.ChannelPromise
+io.netty.util.concurrent.PromiseAggregator:                 io.netty.channel.ChannelPromiseAggregator
+io.netty.util.concurrent.PromiseNotifier:                   io.netty.channel.ChannelPromiseNotifier
+io.netty.util.concurrent.SingleThreadEventExecutor:         io.netty.channel.SingleThreadEventLoop
+
+Missing Methods
+---------------
+
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method public final void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method public final void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+
+Added Classes
+-------------
+
+io.netty.channel.AbstractServerChannel
+io.netty.channel.DefaultAddressedEnvelope
+io.netty.channel.DefaultEventLoop
+io.netty.channel.DefaultEventLoopGroup
+io.netty.channel.DelegatingChannelPromiseNotifier
+io.netty.channel.EventLoopTaskQueueFactory
+io.netty.channel.ServerChannel
+io.netty.channel.ServerChannelRecvByteBufAllocator
+io.netty.channel.ThreadPerChannelEventLoop
+io.netty.channel.embedded.EmbeddedChannel
+io.netty.channel.local.LocalChannel
+io.netty.channel.local.LocalEventLoopGroup
+io.netty.channel.local.LocalServerChannel
+io.netty.channel.nio.AbstractNioByteChannel
+io.netty.channel.nio.AbstractNioChannel
+io.netty.channel.nio.AbstractNioMessageChannel
+io.netty.channel.nio.NioEventLoop
+io.netty.channel.nio.NioEventLoopGroup
+io.netty.channel.oio.AbstractOioByteChannel
+io.netty.channel.oio.AbstractOioChannel
+io.netty.channel.oio.AbstractOioMessageChannel
+io.netty.channel.oio.OioByteStreamChannel
+io.netty.channel.oio.OioEventLoopGroup
+io.netty.channel.socket.DatagramChannel
+io.netty.channel.socket.DuplexChannel
+io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.ServerSocketChannel
+io.netty.channel.socket.SocketChannel
+io.netty.channel.socket.nio.NioChannelOption
+io.netty.channel.socket.nio.NioDatagramChannel
+io.netty.channel.socket.nio.NioServerSocketChannel
+io.netty.channel.socket.nio.NioSocketChannel
+io.netty.channel.socket.oio.OioDatagramChannel
+io.netty.channel.socket.oio.OioServerSocketChannel
+io.netty.channel.socket.oio.OioSocketChannel
+
+Added Superclasses or Superinterfaces
+-------------------------------------
+
+io.netty.channel.socket.DefaultSocketChannelConfig:         interface io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.SocketChannelConfig:                interface @ io.netty.channel.socket.DuplexChannelConfig
+io.netty.channel.socket.oio.OioSocketChannelConfig:         interface io.netty.channel.socket.DuplexChannelConfig
+
+Added Constructors
+------------------
+
+io.netty.channel.ChannelException:      constructor protected io.netty.channel.ChannelException.init(java.lang.String,java.lang.Throwable,boolean)
+io.netty.channel.PendingWriteQueue:     constructor public io.netty.channel.PendingWriteQueue.init(io.netty.channel.Channel)
+
+Added Methods
+-------------
+
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method protected final void io.netty.channel.AbstractChannel$AbstractUnsafe.handleWriteError(java.lang.Throwable)
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method public void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.DefaultChannelConfig:  method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.DefaultChannelConfig:  method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.DefaultChannelPipeline:method protected void io.netty.channel.DefaultChannelPipeline.onUnhandledInboundMessage(io.netty.channel.ChannelHandlerContext,java.lang.Object)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method protected final void io.netty.channel.AbstractChannel$AbstractUnsafe.handleWriteError(java.lang.Throwable)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method public void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.pool.FixedChannelPool: method public io.netty.util.concurrent.Future<java.lang.Void> io.netty.channel.pool.FixedChannelPool.closeAsync()
+io.netty.channel.pool.SimpleChannelPool:method public io.netty.util.concurrent.Future<java.lang.Void> io.netty.channel.pool.SimpleChannelPool.closeAsync()
+io.netty.channel.socket.DefaultDatagramChannelConfig:       method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultDatagramChannelConfig:       method public io.netty.channel.socket.DatagramChannelConfig io.netty.channel.socket.DefaultDatagramChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.DefaultServerSocketChannelConfig:   method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultServerSocketChannelConfig:   method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.DefaultSocketChannelConfig:         method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultSocketChannelConfig:         method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.oio.DefaultOioServerSocketChannelConfig:                method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.oio.DefaultOioServerSocketChannelConfig:                method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.oio.DefaultOioSocketChannelConfig:  method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.oio.DefaultOioSocketChannelConfig:  method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+
+duplicate messages suppressed: 4
+
+
+STATUS:Failed.126 errors
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method protected final void io.netty.channel.AbstractChannel$AbstractUnsafe.handleWriteError(java.lang.Throwable)
+io.netty.channel.AbstractChannel$AbstractUnsafe:            method public void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.DefaultChannelConfig:  method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.DefaultChannelConfig:  method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.DefaultChannelPipeline:method protected void io.netty.channel.DefaultChannelPipeline.onUnhandledInboundMessage(io.netty.channel.ChannelHandlerContext,java.lang.Object)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method protected final void io.netty.channel.AbstractChannel$AbstractUnsafe.handleWriteError(java.lang.Throwable)
+io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe:  method public void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+io.netty.channel.pool.FixedChannelPool: method public io.netty.util.concurrent.Future<java.lang.Void> io.netty.channel.pool.FixedChannelPool.closeAsync()
+io.netty.channel.pool.SimpleChannelPool:method public io.netty.util.concurrent.Future<java.lang.Void> io.netty.channel.pool.SimpleChannelPool.closeAsync()
+io.netty.channel.socket.DefaultDatagramChannelConfig:       method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultDatagramChannelConfig:       method public io.netty.channel.socket.DatagramChannelConfig io.netty.channel.socket.DefaultDatagramChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.DefaultServerSocketChannelConfig:   method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultServerSocketChannelConfig:   method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.DefaultSocketChannelConfig:         method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.DefaultSocketChannelConfig:         method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.oio.DefaultOioServerSocketChannelConfig:                method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.oio.DefaultOioServerSocketChannelConfig:                method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+io.netty.channel.socket.oio.DefaultOioSocketChannelConfig:  method public int io.netty.channel.DefaultChannelConfig.getMaxMessagesPerWrite()
+io.netty.channel.socket.oio.DefaultOioSocketChannelConfig:  method public io.netty.channel.ChannelConfig io.netty.channel.DefaultChannelConfig.setMaxMessagesPerWrite(int)
+
+duplicate messages suppressed: 4
+
+
+STATUS:Failed.126 errors

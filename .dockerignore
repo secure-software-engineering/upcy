@@ -1,0 +1,14 @@
+# dockerfile-maven-plugin does not handle `*` matching directories
+# properly, so list directories
+cache/
+diffs/
+diffs/**
+*_status/
+.idea/
+.idea/*
+.idea/**
+stats/
+src/
+!.dockerignore
+!Dockerfile
+!target/*.jar
