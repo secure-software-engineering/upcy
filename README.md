@@ -45,4 +45,4 @@ This fires ups the databases and mounts the extracted folders as volumes.
 Then wait for the databases to start.
 
 ### Build UpCy 
-- Build UpCy and its docker container `mvn clean compile package`
+- To build UpCy and its docker container run `mvn clean compile package`.
