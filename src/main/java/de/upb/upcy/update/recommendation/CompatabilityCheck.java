@@ -1,8 +1,8 @@
 package de.upb.upcy.update.recommendation;
 
-import de.upb.upcy.MainComputeIncompatibilities;
 import de.upb.upcy.base.commons.ArtifactInfo;
 import de.upb.upcy.base.commons.CompressionUtils;
+import de.upb.upcy.base.compatibility.MainComputeIncompatibilities;
 import de.upb.upcy.base.sigtest.db.MongoDBHandler;
 import de.upb.upcy.base.sigtest.db.model.check.SigTestCheckDBDoc;
 import de.upb.upcy.base.sigtest.db.model.generate.SigTestDBDoc;

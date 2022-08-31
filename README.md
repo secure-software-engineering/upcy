@@ -46,3 +46,28 @@ Then wait for the databases to start.
 
 ### Build UpCy 
 - To build UpCy and its docker container run `mvn clean compile package`.
+
+
+## Run UpCy
+
+### Set environment variables
+For connecting to the databases the following environment variables **must** be set with the concrete values.
+- NEO4J_URL: bolt://localhost:7687
+- NEO4J_USER: neo4j
+- NEO4J_PASS DUMMYPASSWORD
+- MONGO_USER: user
+- MONGO_HOST: localhost
+- MONGO_PW: DUMMYPASSWORD
+
+
+## Run UpCy
+
+## Run on a custom Maven Project (alpha)
+
+
+
+### Re-Run experiments
+The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
+To re-run the experiments download the [experimental-results_dataset.zip](https://ZenodURL) and unzip it on your local machine.
+Then pass the unzipped folder as an argument to the class `MainComputeUpdateSuggestion`.
+The code then clones each repository, and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
