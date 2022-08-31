@@ -25,10 +25,15 @@ To execute und build UpCy yourself you need to have the following software insta
  
 
 ### Install Maven-EcoSystem (libraries for assessing the Neo4j DB of Maven Central)
-- Clone the SootDiff repository `git clone https://github.com/anddann/mvn-ecosystem-graph`
+- Clone the Maven-EcoSystem repository `git clone https://github.com/anddann/mvn-ecosystem-graph`
 - change into the folder `cd mvn-ecosystem-graph`
 - Build and install SootDiff in your local maven repository `mvn clean compile install`
 
+
+### Install UpCy-Base (libraries for building dependency graph and running call graph analysis)
+- Clone the SootDiff repository `git clone https://github.com/anddann/upcy-base`
+- change into the folder `cd upcy-base`
+- Build and install SootDiff in your local maven repository `mvn clean compile install`
 
 ###  Setup Graph Database of Maven Central (Neo4j) & Database of Binary- & Source-Code Incompatibilities (MongoDB)
 
