@@ -62,7 +62,24 @@ For connecting to the databases the following environment variables **must** be 
 
 ## Run UpCy
 
-## Run on a custom Maven Project (alpha)
+## Execute on a Maven Module
+To execute UpCy and its call graph analysis based on Soot, your Maven module must compile since Soot uses the bytecode class for call graph construction.
+Further, all dependencies must resolve properly.
+
+First, compile the module by running `mvn compile`.
+
+Second, generate the dependency graph for the project by executing:
+```
+com.github.ferstl:depgraph-maven-plugin:4.0.1:graph -DshowVersions -DshowGroupIds -DshowDuplicates -DshowConflicts -DgraphFormat=json
+```
+
+Third, invoke the UpCy class `de.upb.upcy.MainMavenComputeUpdateSuggestion` with the following arguments:
+* -dg,--dependency-graph <arg>   the generated dependency graph as json file
+* -gav <arg>                     the GAV of the dependency to update in the form - group:artifact:version
+* -module,--maven-module <arg>   path to the maven module containing the pom.xml
+* -targetGav <arg>               the target GAV in the form - group:artifact:version
+
+Fourth, UpCy will create a file `_recommendation_results.csv` in the module's folder with the computed update options.
 
 
 
