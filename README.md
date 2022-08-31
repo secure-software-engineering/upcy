@@ -86,5 +86,5 @@ Fourth, UpCy will create a file `_recommendation_results.csv` in the module's fo
 ### Re-Run experiments
 The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
 To re-run the experiments download the [experimental-results_dataset.zip](https://ZenodURL) and unzip it on your local machine.
-Then pass the unzipped folder as an argument to the class `MainComputeUpdateSuggestion`.
+Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
 The code then clones each repository, and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
