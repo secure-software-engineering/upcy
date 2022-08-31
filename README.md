@@ -31,7 +31,7 @@ To execute und build UpCy yourself you need to have the following software insta
 
 
 ### Install UpCy-Base (libraries for building dependency graph and running call graph analysis)
-- Clone the SootDiff repository `git clone https://github.com/anddann/upcy-base`
+- Clone the UpCy-Base repository `git clone https://github.com/anddann/upcy-base`
 - change into the folder `cd upcy-base`
 - Build and install SootDiff in your local maven repository `mvn clean compile install`
 
