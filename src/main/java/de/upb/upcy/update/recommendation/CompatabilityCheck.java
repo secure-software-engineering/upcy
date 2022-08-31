@@ -10,6 +10,9 @@ import de.upb.upcy.base.sigtest.db.model.sootdiff.CallGraphCheckDoc;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
 import de.upb.upcy.update.recommendation.compatabilityparser.Parser;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -22,14 +25,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CompatabilityCheck {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(CompatabilityCheck.class);
 
   private static CompatabilityCheck instance = null;
+  private final MongoDBHandler mongoDBHandler = MongoDBHandler.getInstance();
+
+  private CompatabilityCheck() {}
 
   public static CompatabilityCheck getInstance() {
     if (instance == null) {
@@ -38,9 +42,72 @@ public class CompatabilityCheck {
     return instance;
   }
 
-  private CompatabilityCheck() {}
+  private static void generateSigTest(
+      SigTestDBDoc baseVersion, SigTestDBDoc nextVersion, int mode) {
+    final ArtifactInfo baseArtifact = baseVersion.getArtifactInfo();
+    final ArtifactInfo nextArtifact = nextVersion.getArtifactInfo();
+    generateSigTest(
+        baseArtifact.getGroupId(),
+        baseArtifact.getArtifactId(),
+        baseArtifact.getVersion(),
+        nextArtifact.getGroupId(),
+        nextArtifact.getArtifactId(),
+        nextArtifact.getVersion(),
+        mode);
+  }
 
-  private final MongoDBHandler mongoDBHandler = MongoDBHandler.getInstance();
+  private static void generateSigTest(
+      String baseGroup,
+      String baseArtifact,
+      String baseVersion,
+      String nextGroup,
+      String nextArtifact,
+      String nextVersion,
+      int mode) {
+    try {
+      // create the input file
+
+      Path path = Files.createTempFile("tmp", "inputSig");
+      try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+        writer.write(
+            "group,artifact,version,new_group,new_artifact,new_version" + System.lineSeparator());
+        writer.write(
+            baseGroup
+                + ","
+                + baseArtifact
+                + ","
+                + baseVersion
+                + ","
+                + nextGroup
+                + ","
+                + nextArtifact
+                + ","
+                + nextVersion);
+        MainComputeIncompatibilities mainComputeInCompatibilities =
+            new MainComputeIncompatibilities(path);
+
+        if ((mode & SigGenerateMode.SIGTEST.id) != 0) {
+          mainComputeInCompatibilities.generateSignatures();
+        }
+
+        if ((mode & SigGenerateMode.ABI.id) != 0) {
+
+          mainComputeInCompatibilities.compareABI();
+        }
+
+        if ((mode & SigGenerateMode.SOOTDIFF.id) != 0) {
+
+          mainComputeInCompatibilities.compareSootDiff();
+        }
+        if ((mode & SigGenerateMode.SOURCE.id) != 0) {
+
+          mainComputeInCompatibilities.compareSource();
+        }
+      }
+    } catch (IOException exception) {
+      LOGGER.error("Failed to create file for signature generation", exception);
+    }
+  }
 
   private <T> T filterDuplicates(Iterable<T> iterable) {
     List<Object> result = new ArrayList<>();
@@ -112,85 +179,6 @@ public class CompatabilityCheck {
       LOGGER.error("Failed to get Compatability Info", e);
     }
     return Collections.emptyMap();
-  }
-
-  private enum SigGenerateMode {
-    SIGTEST(1),
-    ABI(2),
-    SOOTDIFF(4),
-    SOURCE(8);
-    private final int id;
-
-    SigGenerateMode(int id) {
-      this.id = id;
-    }
-  }
-
-  private static void generateSigTest(
-      SigTestDBDoc baseVersion, SigTestDBDoc nextVersion, int mode) {
-    final ArtifactInfo baseArtifact = baseVersion.getArtifactInfo();
-    final ArtifactInfo nextArtifact = nextVersion.getArtifactInfo();
-    generateSigTest(
-        baseArtifact.getGroupId(),
-        baseArtifact.getArtifactId(),
-        baseArtifact.getVersion(),
-        nextArtifact.getGroupId(),
-        nextArtifact.getArtifactId(),
-        nextArtifact.getVersion(),
-        mode);
-  }
-
-  private static void generateSigTest(
-      String baseGroup,
-      String baseArtifact,
-      String baseVersion,
-      String nextGroup,
-      String nextArtifact,
-      String nextVersion,
-      int mode) {
-    try {
-      // create the input file
-
-      Path path = Files.createTempFile("tmp", "inputSig");
-      try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-        writer.write(
-            "group,artifact,version,new_group,new_artifact,new_version" + System.lineSeparator());
-        writer.write(
-            baseGroup
-                + ","
-                + baseArtifact
-                + ","
-                + baseVersion
-                + ","
-                + nextGroup
-                + ","
-                + nextArtifact
-                + ","
-                + nextVersion);
-        MainComputeIncompatibilities mainComputeInCompatibilities =
-            new MainComputeIncompatibilities(path);
-
-        if ((mode & SigGenerateMode.SIGTEST.id) != 0) {
-          mainComputeInCompatibilities.generateSignatures();
-        }
-
-        if ((mode & SigGenerateMode.ABI.id) != 0) {
-
-          mainComputeInCompatibilities.compareABI();
-        }
-
-        if ((mode & SigGenerateMode.SOOTDIFF.id) != 0) {
-
-          mainComputeInCompatibilities.compareSootDiff();
-        }
-        if ((mode & SigGenerateMode.SOURCE.id) != 0) {
-
-          mainComputeInCompatibilities.compareSource();
-        }
-      }
-    } catch (IOException exception) {
-      LOGGER.error("Failed to create file for signature generation", exception);
-    }
   }
 
   private Map<Parser.COMPATABILITY_TYPE, Collection<? extends Incompatibility>>
@@ -266,5 +254,17 @@ public class CompatabilityCheck {
     }
 
     return result;
+  }
+
+  private enum SigGenerateMode {
+    SIGTEST(1),
+    ABI(2),
+    SOOTDIFF(4),
+    SOURCE(8);
+    private final int id;
+
+    SigGenerateMode(int id) {
+      this.id = id;
+    }
   }
 }

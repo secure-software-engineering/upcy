@@ -1,12 +1,6 @@
 package de.upb.upcy.update.recommendation;
 
 import com.google.common.base.Stopwatch;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graph;
@@ -21,16 +15,31 @@ import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 public class CGBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CGBuilder.class);
 
   private final Collection<String> classPathDirs;
   private final Collection<String> applicationClassDir;
-
-  private SootCallGraphAdapter sootCallGraphAdapter;
-
   private final NodeMatchUtil nodeMatchUtil;
+  private SootCallGraphAdapter sootCallGraphAdapter;
+  private Graph<String, CustomEdge> shrinkedCG;
+
+  public CGBuilder(
+      Collection<String> runtimeDir,
+      Collection<String> applicationClassDir,
+      NodeMatchUtil nodeMatchUtil) {
+    this.classPathDirs = runtimeDir;
+    this.applicationClassDir = applicationClassDir;
+    this.nodeMatchUtil = nodeMatchUtil;
+  }
 
   public SootCallGraphAdapter getSootCallGraphAdapter() {
     if (sootCallGraphAdapter == null) {
@@ -44,17 +53,6 @@ public class CGBuilder {
       throw new IllegalStateException("Run compute first");
     }
     return shrinkedCG;
-  }
-
-  private Graph<String, CustomEdge> shrinkedCG;
-
-  public CGBuilder(
-      Collection<String> runtimeDir,
-      Collection<String> applicationClassDir,
-      NodeMatchUtil nodeMatchUtil) {
-    this.classPathDirs = runtimeDir;
-    this.applicationClassDir = applicationClassDir;
-    this.nodeMatchUtil = nodeMatchUtil;
   }
 
   private void setUpSoot(

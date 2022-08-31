@@ -16,6 +16,21 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
+import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
+import org.jgrapht.graph.AsSubgraph;
+import org.jgrapht.graph.AsUndirectedGraph;
+import org.jgrapht.graph.AsWeightedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.neo4j.driver.Driver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,20 +49,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
-import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
-import org.jgrapht.graph.AsSubgraph;
-import org.jgrapht.graph.AsUndirectedGraph;
-import org.jgrapht.graph.AsWeightedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.traverse.BreadthFirstIterator;
-import org.neo4j.driver.Driver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RecommendationAlgorithm {
 
@@ -78,6 +79,15 @@ public class RecommendationAlgorithm {
     this.mavenInvokerProject = mavenInvokerProject;
     this.pairGraph = getDepGraph(depGraphJsonFile);
     this.isInitialized = false;
+  }
+
+  // kick out non-compile dependencies and junit
+  public static boolean isRelevantCompileDependency(GraphModel.Artifact artifact) {
+    final boolean compile = artifact.getScopes().contains("compile");
+    if (!compile) {
+      return false;
+    }
+    return !StringUtils.contains(artifact.getArtifactId(), "junit");
   }
 
   public Pair<DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency>, GraphModel>
@@ -208,15 +218,6 @@ public class RecommendationAlgorithm {
 
     LOGGER.info("Done with min-cut");
     return updateSuggestions;
-  }
-
-  // kick out non-compile dependencies and junit
-  public static boolean isRelevantCompileDependency(GraphModel.Artifact artifact) {
-    final boolean compile = artifact.getScopes().contains("compile");
-    if (!compile) {
-      return false;
-    }
-    return !StringUtils.contains(artifact.getArtifactId(), "junit");
   }
 
   private UpdateSuggestion getSimpleUpdateSuggestion(

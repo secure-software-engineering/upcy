@@ -2,6 +2,7 @@ package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
 import edu.emory.mathcs.backport.java.util.Collections;
+
 import java.util.Collection;
 
 public class MatchUpdateNodeQuery implements CypherQuery {

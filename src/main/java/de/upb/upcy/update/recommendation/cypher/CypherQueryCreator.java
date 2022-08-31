@@ -3,6 +3,11 @@ package de.upb.upcy.update.recommendation.cypher;
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,10 +18,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CypherQueryCreator {
 

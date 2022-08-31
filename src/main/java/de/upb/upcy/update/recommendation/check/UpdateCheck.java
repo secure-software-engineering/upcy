@@ -13,6 +13,16 @@ import de.upb.upcy.update.recommendation.compatabilityparser.SigTestIncompatibil
 import de.upb.upcy.update.recommendation.compatabilityparser.SootMethodIncompatibility;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import soot.SootMethod;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,15 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
-import org.jgrapht.alg.shortestpath.BFSShortestPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import soot.SootMethod;
 
 public class UpdateCheck {
 
@@ -67,6 +68,122 @@ public class UpdateCheck {
             .orElseThrow(() -> new IllegalStateException("Could not find project root"));
     this.shortestPathDepTree = new BFSShortestPath<>(dependencyGraph);
     this.unUpdatedNodes = unUpdatedNodes;
+  }
+
+  public static SigTestMethod parseSigTestMethodSignature(final String qualifiedMethod) {
+    String currMethodString = qualifiedMethod;
+    int idx = currMethodString.indexOf("(");
+    String parameterString;
+    List<String> parameters = Collections.emptyList();
+    if (idx > -1) {
+      parameterString = currMethodString.substring(idx + 1, currMethodString.length() - 1);
+      parameters = Arrays.asList(parameterString.split(","));
+      currMethodString = currMethodString.substring(0, idx);
+    }
+    // get the method name
+    String nameString;
+    String returnVal;
+    List<String> qualifiers = new ArrayList<>();
+    final String[] splitMethod = currMethodString.split(" ");
+    // the last element is the name
+    nameString = splitMethod[splitMethod.length - 1];
+    // the element before the return type
+    returnVal = splitMethod[splitMethod.length - 2];
+    // everything else, are qualifiers
+    for (int i = splitMethod.length - 3; i >= 0; i--) {
+      qualifiers.add(splitMethod[i]);
+    }
+    qualifiers = Lists.reverse(qualifiers);
+
+    idx = nameString.lastIndexOf(".");
+    if (idx > -1) {
+      nameString = nameString.substring(idx + 1);
+    }
+
+    final SigTestMethod sigTestMethod = new SigTestMethod();
+    sigTestMethod.name = nameString;
+    sigTestMethod.parameters = parameters;
+    sigTestMethod.returnType = returnVal;
+    sigTestMethod.qualifier = qualifiers;
+    return sigTestMethod;
+  }
+
+  public static List<SootMethod> getSourceBinEdgeViolation(
+      Collection<? extends Incompatibility> incompatibilities, CustomEdge customEdge)
+      throws CompatabilityComputeException {
+    if (incompatibilities == null) {
+      LOGGER.error("Incompatibilities is NULL");
+      throw new CompatabilityComputeException("Incompatibilities is NULL");
+    }
+
+    List<SootMethod> violatedCalls = new ArrayList<>();
+    for (Pair<SootMethod, SootMethod> srcTgtMethod : customEdge.getSrcTgtMethods()) {
+      // keep in mind, that also a class maybe delete
+      final SootMethod tgtMethod = srcTgtMethod.getRight();
+      final String tgtClass = tgtMethod.getDeclaringClass().getName();
+
+      final List<SigTestIncompatibility> incComClasses =
+          incompatibilities.stream()
+              .filter(x -> x instanceof SigTestIncompatibility)
+              .map(x -> (SigTestIncompatibility) x)
+              .filter(x -> StringUtils.equals(x.getClassName(), tgtClass))
+              .collect(Collectors.toList());
+
+      if (incComClasses.isEmpty()) {
+        // no incompatibility found for the tgt class
+        continue;
+      }
+      for (SigTestIncompatibility incompatibility : incComClasses) {
+        // check if the class has been deleted
+        if ((incompatibility.getFieldNames() == null || incompatibility.getFieldNames().isEmpty())
+            && (incompatibility.getInterfaceNames() == null
+                || incompatibility.getInterfaceNames().isEmpty())
+            && (incompatibility.getMethodNames() == null
+                || incompatibility.getMethodNames().isEmpty())) {
+          // the class has been deleted
+          violatedCalls.add(tgtMethod);
+          continue;
+        }
+        // if the class has not been deleted, check if the method has been deleted
+
+        if (incompatibility.getMethodNames() == null) {
+          continue;
+        }
+
+        // parse from right-to-left
+        for (String methodName : incompatibility.getMethodNames()) {
+          final SigTestMethod sigTestMethod = parseSigTestMethodSignature(methodName);
+          // check if it matches the soot method
+          // check if method name matches
+          if (StringUtils.equals(tgtMethod.getName(), sigTestMethod.name)) {
+            // check if return type matches
+            if (StringUtils.equals(
+                tgtMethod.getReturnType().toQuotedString(), sigTestMethod.returnType)) {
+              // check if parameters matches
+              if (tgtMethod.getParameterCount() == sigTestMethod.parameters.size()) {
+                boolean parameterMatch = true;
+                for (int i = 0; i < tgtMethod.getParameterCount(); i++) {
+                  parameterMatch &=
+                      StringUtils.equals(
+                          tgtMethod.getParameterType(i).toQuotedString(),
+                          sigTestMethod.parameters.get(i));
+                }
+                if (parameterMatch) {
+                  violatedCalls.add(tgtMethod);
+
+                  LOGGER.debug(
+                      "Matching SootMethod {} with SigTestMethod {}",
+                      tgtMethod.getSignature(),
+                      methodName);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return violatedCalls;
   }
 
   /**
@@ -221,6 +338,13 @@ public class UpdateCheck {
     }
   }
 
+  // example source: io.netty.channel.AbstractChannel$AbstractUnsafe:            method public final
+  // void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
+
+  // example bin:
+  // method public final okhttp3.internal.ws.MessageInflater
+  // okhttp3.internal.ws.WebSocketExtensions.newMessageInflater(boolean)
+
   //  if orgDepNode in blossom --- !! NO violated EDGE since it is updated!!!
   private Map<String, CustomEdge> computeViolatedEdges(GraphModel.Artifact orgDepNode)
       throws EmptyCallGraphException {
@@ -352,136 +476,6 @@ public class UpdateCheck {
     return Collections.singletonList(violation);
   }
 
-  // example source: io.netty.channel.AbstractChannel$AbstractUnsafe:            method public final
-  // void io.netty.channel.AbstractChannel$AbstractUnsafe.close(io.netty.channel.ChannelPromise)
-
-  // example bin:
-  // method public final okhttp3.internal.ws.MessageInflater
-  // okhttp3.internal.ws.WebSocketExtensions.newMessageInflater(boolean)
-
-  public static class SigTestMethod {
-    String name;
-    List<String> qualifier;
-    String returnType;
-    List<String> parameters;
-  }
-
-  public static SigTestMethod parseSigTestMethodSignature(final String qualifiedMethod) {
-    String currMethodString = qualifiedMethod;
-    int idx = currMethodString.indexOf("(");
-    String parameterString;
-    List<String> parameters = Collections.emptyList();
-    if (idx > -1) {
-      parameterString = currMethodString.substring(idx + 1, currMethodString.length() - 1);
-      parameters = Arrays.asList(parameterString.split(","));
-      currMethodString = currMethodString.substring(0, idx);
-    }
-    // get the method name
-    String nameString;
-    String returnVal;
-    List<String> qualifiers = new ArrayList<>();
-    final String[] splitMethod = currMethodString.split(" ");
-    // the last element is the name
-    nameString = splitMethod[splitMethod.length - 1];
-    // the element before the return type
-    returnVal = splitMethod[splitMethod.length - 2];
-    // everything else, are qualifiers
-    for (int i = splitMethod.length - 3; i >= 0; i--) {
-      qualifiers.add(splitMethod[i]);
-    }
-    qualifiers = Lists.reverse(qualifiers);
-
-    idx = nameString.lastIndexOf(".");
-    if (idx > -1) {
-      nameString = nameString.substring(idx + 1);
-    }
-
-    final SigTestMethod sigTestMethod = new SigTestMethod();
-    sigTestMethod.name = nameString;
-    sigTestMethod.parameters = parameters;
-    sigTestMethod.returnType = returnVal;
-    sigTestMethod.qualifier = qualifiers;
-    return sigTestMethod;
-  }
-
-  public static List<SootMethod> getSourceBinEdgeViolation(
-      Collection<? extends Incompatibility> incompatibilities, CustomEdge customEdge)
-      throws CompatabilityComputeException {
-    if (incompatibilities == null) {
-      LOGGER.error("Incompatibilities is NULL");
-      throw new CompatabilityComputeException("Incompatibilities is NULL");
-    }
-
-    List<SootMethod> violatedCalls = new ArrayList<>();
-    for (Pair<SootMethod, SootMethod> srcTgtMethod : customEdge.getSrcTgtMethods()) {
-      // keep in mind, that also a class maybe delete
-      final SootMethod tgtMethod = srcTgtMethod.getRight();
-      final String tgtClass = tgtMethod.getDeclaringClass().getName();
-
-      final List<SigTestIncompatibility> incComClasses =
-          incompatibilities.stream()
-              .filter(x -> x instanceof SigTestIncompatibility)
-              .map(x -> (SigTestIncompatibility) x)
-              .filter(x -> StringUtils.equals(x.getClassName(), tgtClass))
-              .collect(Collectors.toList());
-
-      if (incComClasses.isEmpty()) {
-        // no incompatibility found for the tgt class
-        continue;
-      }
-      for (SigTestIncompatibility incompatibility : incComClasses) {
-        // check if the class has been deleted
-        if ((incompatibility.getFieldNames() == null || incompatibility.getFieldNames().isEmpty())
-            && (incompatibility.getInterfaceNames() == null
-                || incompatibility.getInterfaceNames().isEmpty())
-            && (incompatibility.getMethodNames() == null
-                || incompatibility.getMethodNames().isEmpty())) {
-          // the class has been deleted
-          violatedCalls.add(tgtMethod);
-          continue;
-        }
-        // if the class has not been deleted, check if the method has been deleted
-
-        if (incompatibility.getMethodNames() == null) {
-          continue;
-        }
-
-        // parse from right-to-left
-        for (String methodName : incompatibility.getMethodNames()) {
-          final SigTestMethod sigTestMethod = parseSigTestMethodSignature(methodName);
-          // check if it matches the soot method
-          // check if method name matches
-          if (StringUtils.equals(tgtMethod.getName(), sigTestMethod.name)) {
-            // check if return type matches
-            if (StringUtils.equals(
-                tgtMethod.getReturnType().toQuotedString(), sigTestMethod.returnType)) {
-              // check if parameters matches
-              if (tgtMethod.getParameterCount() == sigTestMethod.parameters.size()) {
-                boolean parameterMatch = true;
-                for (int i = 0; i < tgtMethod.getParameterCount(); i++) {
-                  parameterMatch &=
-                      StringUtils.equals(
-                          tgtMethod.getParameterType(i).toQuotedString(),
-                          sigTestMethod.parameters.get(i));
-                }
-                if (parameterMatch) {
-                  violatedCalls.add(tgtMethod);
-
-                  LOGGER.debug(
-                      "Matching SootMethod {} with SigTestMethod {}",
-                      tgtMethod.getSignature(),
-                      methodName);
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return violatedCalls;
-  }
-
   private List<SootMethod> getSemanticEdgeViolation(
       Collection<? extends Incompatibility> incompatabilities, CustomEdge customEdge)
       throws CompatabilityComputeException {
@@ -507,5 +501,12 @@ public class UpdateCheck {
       }
     }
     return violatedCalls;
+  }
+
+  public static class SigTestMethod {
+    String name;
+    List<String> qualifier;
+    String returnType;
+    List<String> parameters;
   }
 }

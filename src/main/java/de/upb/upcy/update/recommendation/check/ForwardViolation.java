@@ -1,9 +1,10 @@
 package de.upb.upcy.update.recommendation.check;
 
-import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import soot.SootMethod;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Value

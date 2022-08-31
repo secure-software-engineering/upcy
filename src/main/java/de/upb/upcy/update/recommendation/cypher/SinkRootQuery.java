@@ -1,9 +1,9 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
 
@@ -23,10 +24,6 @@ public class SinkRootQuery implements CypherQuery {
   private final BlossomGraphCreator blossomGraphCreator;
   private final Set<GraphModel.Artifact> nodesBoundInThisQuery = new HashSet<>();
   private final String targetVersion;
-
-  public GraphModel.Artifact getSharedNode() {
-    return sharedNode;
-  }
 
   public SinkRootQuery(
       Map<GraphModel.Artifact, List<GraphModel.Artifact>> sinkRoots,
@@ -39,6 +36,10 @@ public class SinkRootQuery implements CypherQuery {
     this.libToUpdateInDepGraph = libToUpdateInDepGraph;
     this.blossomGraphCreator = blossomGraphCreator;
     this.targetVersion = targetVersion;
+  }
+
+  public GraphModel.Artifact getSharedNode() {
+    return sharedNode;
   }
 
   public String generateQuery(Collection<GraphModel.Artifact> boundNodes) {

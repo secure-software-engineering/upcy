@@ -261,7 +261,7 @@
 
         <dependency>
             <groupId>de.upb.upcy.base</groupId>
-            <artifactId>thetis-project-pipeline</artifactId>
+            <artifactId>naive-update-eval-pipeline</artifactId>
             <version>0.7.1-SNAPSHOT</version>
         </dependency>
 

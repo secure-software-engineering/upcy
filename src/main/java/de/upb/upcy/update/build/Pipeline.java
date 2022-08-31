@@ -1,12 +1,13 @@
 package de.upb.upcy.update.build;
 
 import de.upb.upcy.base.mvn.MavenInvokerProject;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Pipeline {
   private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
@@ -14,10 +15,6 @@ public class Pipeline {
   private final MavenInvokerProject mavenInvokerProject;
   private final String projectName;
   private final Path modulePomFile;
-
-  public MavenInvokerProject getMavenInvokerProject() {
-    return mavenInvokerProject;
-  }
 
   public Pipeline(Path rootProjectPomFile, Path modulePomFile, String projectName)
       throws IOException {
@@ -28,6 +25,10 @@ public class Pipeline {
     }
     this.mavenInvokerProject = new MavenInvokerProject(modulePomFile);
     this.projectName = projectName;
+  }
+
+  public MavenInvokerProject getMavenInvokerProject() {
+    return mavenInvokerProject;
   }
 
   public void runPipeline() throws IOException {

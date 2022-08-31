@@ -6,6 +6,12 @@ import com.rabbitmq.client.Delivery;
 import de.upb.upcy.base.build.Utils;
 import de.upb.upcy.base.commons.RabbitMQCollective;
 import de.upb.upcy.update.process.ComputeRecommendationProcess;
+import net.lingala.zip4j.ZipFile;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,11 +23,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import net.lingala.zip4j.ZipFile;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Main-Class for the Docker containers. Entrypoint to execute the recommendation pipeline in
@@ -31,10 +32,10 @@ public class Main extends RabbitMQCollective {
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-  private FileServerUpload httpClient;
   private final ArrayList<String> doneProjectNames = new ArrayList<>();
-  private Path projectDir;
   private final ArrayList<String> todoProjectNames = new ArrayList<>();
+  private FileServerUpload httpClient;
+  private Path projectDir;
 
   public Main() {
     super("THETIS_PROJECT_PIPELINE");

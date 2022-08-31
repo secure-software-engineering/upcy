@@ -1,8 +1,9 @@
 package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
-import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.UUID;
 
 public class Utils {
   public static String getNodeNameForCypher(GraphModel.Artifact artifact) {

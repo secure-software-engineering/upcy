@@ -40,6 +40,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Main class for running the evaluation experiments.
+ * Requires as an inout the folder containing the projects and _update-step.csv files.
+ */
 public class MainComputeUpdateSuggestion {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MainComputeUpdateSuggestion.class);

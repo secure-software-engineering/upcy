@@ -3,6 +3,12 @@ package de.upb.upcy.update.recommendation;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +22,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NodeMatchUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeMatchUtil.class);
@@ -31,34 +32,6 @@ public class NodeMatchUtil {
 
   public NodeMatchUtil(GraphModel.Artifact rootNode) {
     this.rootNode = rootNode;
-  }
-
-  public HashMap<String, String> getClassToGav() {
-    return classToGav;
-  }
-
-  public HashMap<String, Set<String>> getGavToClasses() {
-    return GavToClasses;
-  }
-
-  public Optional<String> findInDepGraphByGav(
-      GraphModel.Artifact artifact, Graph<String, CustomEdge> in, boolean withVersion) {
-
-    return in.vertexSet().stream().filter(x -> match(artifact, x, withVersion)).findFirst();
-  }
-
-  public void computeJarAndClassMapping(Collection<String> runtimeDir) throws IOException {
-
-    // setup compute class mapping
-    for (String cpEntry : runtimeDir) {
-      final Set<String> classNamesFromJarFile = getClassNamesFromJarFileOrDir(new File(cpEntry));
-
-      String jarFileName = toGav(cpEntry);
-      this.GavToClasses.put(jarFileName, classNamesFromJarFile);
-      for (String clName : classNamesFromJarFile) {
-        classToGav.put(clName, jarFileName);
-      }
-    }
   }
 
   public static Set<String> getClassNamesFromJarFileOrDir(File givenFile) throws IOException {
@@ -101,6 +74,34 @@ public class NodeMatchUtil {
 
     LOGGER.warn("Did not found classes for {}", givenFile);
     return classNames;
+  }
+
+  public HashMap<String, String> getClassToGav() {
+    return classToGav;
+  }
+
+  public HashMap<String, Set<String>> getGavToClasses() {
+    return GavToClasses;
+  }
+
+  public Optional<String> findInDepGraphByGav(
+      GraphModel.Artifact artifact, Graph<String, CustomEdge> in, boolean withVersion) {
+
+    return in.vertexSet().stream().filter(x -> match(artifact, x, withVersion)).findFirst();
+  }
+
+  public void computeJarAndClassMapping(Collection<String> runtimeDir) throws IOException {
+
+    // setup compute class mapping
+    for (String cpEntry : runtimeDir) {
+      final Set<String> classNamesFromJarFile = getClassNamesFromJarFileOrDir(new File(cpEntry));
+
+      String jarFileName = toGav(cpEntry);
+      this.GavToClasses.put(jarFileName, classNamesFromJarFile);
+      for (String clName : classNamesFromJarFile) {
+        classToGav.put(clName, jarFileName);
+      }
+    }
   }
 
   public String getFileName(String abFileName) {
