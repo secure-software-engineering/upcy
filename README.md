@@ -85,7 +85,7 @@ Fourth, UpCy will create a file `_recommendation_results.csv` in the module's fo
 
 ### Re-Run experiments
 The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
-To re-run the experiments download the [experimental-results_dataset.zip](https://ZenodURL) and unzip it on your local machine.
+To re-run the experiments download the [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) and unzip it on your local machine.
 Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
 The code then clones each repository, and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
 
@@ -99,9 +99,9 @@ To do so, the pipeline consists of **one** `rabbitmq` message broker container f
 Before running the containers copy the file `upcy.sample.env` to `upcy.env` and adapt the environment variables there.
 For saving the results the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
 The producer node reads as an input from `FILESERVER_HOST/project_input_recommendation.zip`. 
-For creating the file from [experimental-results_dataset.zip](https://ZenodURL) run the bash script `prepare-inputfile.sh`
+For creating the file from [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) run the bash script `prepare-inputfile.sh`
 If you prefer to create the file manually keep in mind that
  - the file must contain a root folder `projects`
  - sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
  - the sub-folders must contain the `_update-steps.csv` files
- - the example input is [experimental-results_dataset.zip](https://ZenodURL). Note the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.
+ - the example input is [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY). Note the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.
