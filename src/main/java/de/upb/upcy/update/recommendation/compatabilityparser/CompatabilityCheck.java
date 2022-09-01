@@ -1,4 +1,4 @@
-package de.upb.upcy.update.recommendation;
+package de.upb.upcy.update.recommendation.compatabilityparser;
 
 import de.upb.upcy.base.commons.ArtifactInfo;
 import de.upb.upcy.base.commons.CompressionUtils;
@@ -7,8 +7,6 @@ import de.upb.upcy.base.sigtest.db.MongoDBHandler;
 import de.upb.upcy.base.sigtest.db.model.check.SigTestCheckDBDoc;
 import de.upb.upcy.base.sigtest.db.model.generate.SigTestDBDoc;
 import de.upb.upcy.base.sigtest.db.model.sootdiff.CallGraphCheckDoc;
-import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
-import de.upb.upcy.update.recommendation.compatabilityparser.Parser;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +24,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Get the incompatibilities between two versions of a library, using SigTest and the MongoDB with API incompatibilities
+ * @author adann
+ */
 public class CompatabilityCheck {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(CompatabilityCheck.class);

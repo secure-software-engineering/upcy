@@ -22,6 +22,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Create the module's call graph using the static analysis framework Soot https://github.com/soot-oss/soot
+ *
+ * @author adann
+ */
 public class CGBuilder {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CGBuilder.class);

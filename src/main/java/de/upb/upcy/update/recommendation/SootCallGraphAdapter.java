@@ -14,7 +14,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-/** Created by adann on 25.10.16. */
+/**
+ * Utility class to use Soot's call graph with the jGraphT library *
+ * @author adann
+ * Created by adann
+ * on 25.10.16.
+ */
 public class SootCallGraphAdapter extends AbstractBaseGraph<Object, Edge> {
 
   private final CallGraph callGraph;

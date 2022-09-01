@@ -17,6 +17,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Class for creating and expanding blossoms in the dependency graph
+ *
+ * @author adann
+ */
 public class BlossomGraphCreator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BlossomGraphCreator.class);

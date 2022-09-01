@@ -4,9 +4,9 @@ import com.google.common.collect.Lists;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
-import de.upb.upcy.update.recommendation.CompatabilityCheck;
 import de.upb.upcy.update.recommendation.CustomEdge;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
+import de.upb.upcy.update.recommendation.compatabilityparser.CompatabilityCheck;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
 import de.upb.upcy.update.recommendation.compatabilityparser.Parser;
 import de.upb.upcy.update.recommendation.compatabilityparser.SigTestIncompatibility;
@@ -34,6 +34,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Compute violations for a given update using the CompatibilityCheck
+ *
+ * @author adann
+ */
 public class UpdateCheck {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(UpdateCheck.class);
@@ -288,7 +293,8 @@ public class UpdateCheck {
       return compatibilityCheck(orgDepNode, newDepNode, sourceNodeViolatedEdge);
     } else {
       // case 1.2.2 s->orgDepNode (over initUpdateNode) is NOT the shortest path
-      final ShortestPathAlgorithm<MvnArtifactNode, DependencyRelation> updateSubGraphShortestPath = new BFSShortestPath<>(updateSubGraph);
+      final ShortestPathAlgorithm<MvnArtifactNode, DependencyRelation> updateSubGraphShortestPath =
+          new BFSShortestPath<>(updateSubGraph);
 
       GraphPath<MvnArtifactNode, DependencyRelation> pathAfterTransformation = null;
       for (GraphModel.Artifact node : initUpdatedDepNodes) {

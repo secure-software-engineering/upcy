@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.Set;
 
+/**
+ * Represent a computed min-(s,t)-cut
+ */
 @Data
 public class MinCut {
 

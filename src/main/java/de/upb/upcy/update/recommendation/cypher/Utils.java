@@ -5,6 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
 
+/**
+ * Util class to create consistent variable names for nodes, relations, and paths in Cypher queries
+ */
 public class Utils {
   public static String getNodeNameForCypher(GraphModel.Artifact artifact) {
     if (artifact == null) {

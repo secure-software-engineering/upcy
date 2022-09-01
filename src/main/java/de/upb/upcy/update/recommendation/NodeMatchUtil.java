@@ -23,6 +23,11 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
+/**
+ * (Re-)Find libraries in the different graph representations: dependency graph, call graph, update
+ * Graph from Neo4j, unified dependency graph
+ * @author adann
+ */
 public class NodeMatchUtil {
   private static final Logger LOGGER = LoggerFactory.getLogger(NodeMatchUtil.class);
 

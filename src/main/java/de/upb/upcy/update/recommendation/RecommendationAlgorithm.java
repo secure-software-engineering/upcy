@@ -50,6 +50,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+
+/**
+ * Compute update recommendations and their incompatibilities.
+ * 1. compute the naive update
+ * 2. find a min-(s,t)-cut with fewer incompatibilities
+ * @author adann
+ */
 public class RecommendationAlgorithm {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RecommendationAlgorithm.class);

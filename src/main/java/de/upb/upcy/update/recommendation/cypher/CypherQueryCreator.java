@@ -19,6 +19,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Class to construct cypher queries for finding a solution to the min-(s,t)-cut
+ */
 public class CypherQueryCreator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CypherQueryCreator.class);
