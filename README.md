@@ -88,3 +88,19 @@ The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
 To re-run the experiments download the [experimental-results_dataset.zip](https://ZenodURL) and unzip it on your local machine.
 Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
 The code then clones each repository, and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
+
+
+#### Re-Run experiments using the Docker pipeline
+The docker pipeline allows you to re-run the UpCy experiments distributed on multiple machines using the docker-compose file `docker-compose-upcy-dockerized.yml`
+To do so, the pipeline consists of **one** `rabbitmq` message broker container for distributing the workload, **one** `producer` container creating the tasks, and **multiple** worker containers that run UpCy.
+
+
+
+Before running the containers copy the file `upcy.sample.env` to `upcy.env` and adapt the environment variables there.
+For saving the results the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
+The producer node reads as an input from `FILESERVER_HOST/project_input_recommendation.zip`. 
+For creating the file from [experimental-results_dataset.zip](https://ZenodURL) run the bash script `prepare-inputfile.sh`
+ - the file must contain a root folder `projects`
+ - sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
+ - the sub-folders must contain the `_update-steps.csv` files
+ - an example input is the [experimental-results_dataset.zip](https://ZenodURL). **Note** the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.

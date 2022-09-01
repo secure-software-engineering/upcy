@@ -4,41 +4,44 @@ services:
   rabbitmq:
     restart: always
     image: rabbitmq:3.8
+    env_file:
+      - ./rabbitmq.env
     environment:
       # increase the timeout -- that a worker uses for working an the program and then sending an ack
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 86400000
-      - RABBITMQ_DEFAULT_USER=myuser
-      - RABBITMQ_DEFAULT_PASS=mypassword
     deploy:
-      mode: global
+      replicas: 1
+      mode: replicated
     networks:
-      - crawler-net
+      - pipeline-net
 
+  #creates the work messages
   producer:
     restart: always
-    image: ghcr.io/anddann/thetis-evaluation:1.0-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.3-SNAPSHOT
     depends_on:
       - rabbitmq
+      - fileServer
     deploy:
-      mode: global
+      # we only need one producer
+      replicas: 1
+      mode: replicated
       restart_policy:
         condition: on-failure
         delay: 90s
         window: 240s
     env_file:
-      - production.env
+      - ./upcy.sample.env
     environment:
       - WORKER_NODE=false
-      - RABBITMQ_USER=myuser
-      - RABBITMQ_PASS=mypassword
     networks:
-      - crawler-net
+      - pipeline-net
 
   worker:
     restart: always
-    image: ghcr.io/anddann/thetis-evaluation:1.0-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.3-SNAPSHOT
     deploy:
-      replicas: 1
+      replicas: 2
       mode: replicated
       restart_policy:
         condition: on-failure
@@ -48,17 +51,13 @@ services:
       - rabbitmq
       - producer
     env_file:
-      - production.env
+      - ./upcy.sample.env
     environment:
       - WORKER_NODE=true
-      - RABBITMQ_USER=myuser
-      - RABBITMQ_PASS=mypassword
-      - FILESERVER_HOST=http://fileServer:8000
-      - FILESERVER_USER=test
-      - FILESERVER_PASS=test
+      - TIMEOUT=21600
     networks:
-      - crawler-net
+      - pipeline-net
 
 networks:
-  crawler-net:
+  pipeline-net:
     external: false
