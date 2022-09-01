@@ -36,7 +36,7 @@ To execute und build UpCy yourself you need to have the following software insta
 - Build and install SootDiff in your local maven repository `mvn clean compile install`
 
 ###  Setup Graph Database of Maven Central (Neo4j) & Database of Binary- & Source-Code Incompatibilities (MongoDB)
-Download the database files `incompabilities_mongodb.tar.gz` and `maven-central_neo4j.tar.gz` from <https://zendo.com/>.
+Download the database files `incompabilities_mongodb.tar.gz` and `maven-central_neo4j.tar.gz` from <https://zenodo.org/record/7037674#.YxDXFOxBzUY>.
 Extract both files using the command `tar xzf <FileName>`. The unzipped folders contain the databases.
 Then start an instance of a mongoDB and Neo4j database and mount these two folders as volumes.
 A ready-to-use configuration is in the file `docker-compose-dbs.yml`.
