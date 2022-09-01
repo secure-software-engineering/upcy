@@ -10,7 +10,6 @@ import de.upb.upcy.base.commons.JavaProcess;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.build.Result;
-import de.upb.upcy.update.recommendation.UpdateSuggestion;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -56,8 +54,8 @@ public class ComputeRecommendationProcess {
 
     List<Result> results;
     try (Reader reader = Files.newBufferedReader(csvFile)) {
-      CsvToBean sbc =
-          new CsvToBeanBuilder(reader)
+      CsvToBean<Result> sbc =
+          new CsvToBeanBuilder<Result>(reader)
               .withType(Result.class)
               .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
               .build();
@@ -110,9 +108,6 @@ public class ComputeRecommendationProcess {
     PipelineRunner pipelineRunner = new PipelineRunner(projectName, projectPom);
     // the project/module names and the associated maveninvokerproject
     final Map<String, MavenInvokerProject> run = pipelineRunner.run();
-
-    // handle the modules
-    List<UpdateSuggestion> aggResults = new ArrayList<>();
 
     for (Map.Entry<String, List<Result>> module : groupByModuleName.entrySet()) {
 

@@ -100,7 +100,8 @@ Before running the containers copy the file `upcy.sample.env` to `upcy.env` and 
 For saving the results the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
 The producer node reads as an input from `FILESERVER_HOST/project_input_recommendation.zip`. 
 For creating the file from [experimental-results_dataset.zip](https://ZenodURL) run the bash script `prepare-inputfile.sh`
+If you prefer to create the file manually keep in mind that
  - the file must contain a root folder `projects`
  - sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
  - the sub-folders must contain the `_update-steps.csv` files
- - an example input is the [experimental-results_dataset.zip](https://ZenodURL). **Note** the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.
+ - the example input is [experimental-results_dataset.zip](https://ZenodURL). Note the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.

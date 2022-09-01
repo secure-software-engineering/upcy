@@ -189,7 +189,7 @@ public class UpdateCheck {
   /**
    * @param initUpdatedNodes - the "initially" updated nodes, for the simple case just the updated
    *     dep; for the min-(s,t)-cut all updated "root-nodes" in T
-   * @return
+   * @return the violations
    */
   public Collection<Violation> computeViolation(Collection<GraphModel.Artifact> initUpdatedNodes)
       throws CompatabilityComputeException, EmptyCallGraphException {
@@ -288,9 +288,9 @@ public class UpdateCheck {
       return compatibilityCheck(orgDepNode, newDepNode, sourceNodeViolatedEdge);
     } else {
       // case 1.2.2 s->orgDepNode (over initUpdateNode) is NOT the shortest path
-      final ShortestPathAlgorithm updateSubGraphShortestPath = new BFSShortestPath(updateSubGraph);
+      final ShortestPathAlgorithm<MvnArtifactNode, DependencyRelation> updateSubGraphShortestPath = new BFSShortestPath<>(updateSubGraph);
 
-      GraphPath pathAfterTransformation = null;
+      GraphPath<MvnArtifactNode, DependencyRelation> pathAfterTransformation = null;
       for (GraphModel.Artifact node : initUpdatedDepNodes) {
         final Optional<MvnArtifactNode> inNeo4jGraph =
             nodeMatchUtil.findInNeo4jGraph(node, updateSubGraph, false);
@@ -299,7 +299,7 @@ public class UpdateCheck {
           continue;
         }
         // path length after transformation, over the initial updated node "node"
-        final GraphPath nextPath =
+        final GraphPath<MvnArtifactNode, DependencyRelation> nextPath =
             updateSubGraphShortestPath.getPath(inNeo4jGraph.get(), newDepNode);
         if (pathAfterTransformation != null
             && nextPath.getLength() < pathAfterTransformation.getLength()) {

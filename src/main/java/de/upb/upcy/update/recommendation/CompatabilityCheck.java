@@ -110,15 +110,15 @@ public class CompatabilityCheck {
   }
 
   private <T> T filterDuplicates(Iterable<T> iterable) {
-    List<Object> result = new ArrayList<>();
+    List<T> result = new ArrayList<>();
     iterable.forEach(result::add);
     if (result.size() > 1) {
       LOGGER.debug("List contains duplicate documents");
-      return (T) result.get(0);
+      return result.get(0);
     } else if (result.isEmpty()) {
       return null;
     }
-    return (T) result.get(0);
+    return result.get(0);
   }
 
   public Map<Parser.COMPATABILITY_TYPE, Collection<? extends Incompatibility>> getCompatabilityInfo(

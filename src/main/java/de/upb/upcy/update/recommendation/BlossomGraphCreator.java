@@ -128,8 +128,8 @@ public class BlossomGraphCreator {
   /**
    * Returns the expanded blossom nodes or null if it is not a blossom
    *
-   * @param blossom
-   * @return
+   * @param blossom the blossom node
+   * @return the expanded blossom or null
    */
   public Collection<GraphModel.Artifact> expandBlossomNode(GraphModel.Artifact blossom) {
 
@@ -139,8 +139,8 @@ public class BlossomGraphCreator {
   /**
    * Returns the blossom node or null if this is not part of a blossom
    *
-   * @param artifact
-   * @return
+   * @param artifact the artifact
+   * @return the blossom node or null
    */
   public GraphModel.Artifact getBlossomNode(GraphModel.Artifact artifact) {
 

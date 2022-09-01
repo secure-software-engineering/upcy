@@ -25,7 +25,7 @@ services:
   mongo:
     image: mongo:4.2
     ports: #expose ports to the outside
-      - 27017:27017
+      - "27017:27017"
     volumes:
       - ./2022_07_14_mongodb/:/data/db
     environment:

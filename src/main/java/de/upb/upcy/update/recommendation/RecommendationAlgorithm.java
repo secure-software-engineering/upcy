@@ -231,16 +231,16 @@ public class RecommendationAlgorithm {
     // included by the libToUpdate
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded =
-        new AsSubgraph(
-            depGraph,
-            depGraph.vertexSet().stream()
-                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                .collect(Collectors.toSet()),
-            depGraph.edgeSet().stream()
-                .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
-                .collect(Collectors.toSet()));
+            new AsSubgraph<>(
+                    depGraph,
+                    depGraph.vertexSet().stream()
+                            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+                            .collect(Collectors.toSet()),
+                    depGraph.edgeSet().stream()
+                            .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
+                            .collect(Collectors.toSet()));
     BreadthFirstIterator<GraphModel.Artifact, GraphModel.Dependency> breadthFirstIterator =
-        new BreadthFirstIterator(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
+            new BreadthFirstIterator<>(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
     while (breadthFirstIterator.hasNext()) {
       final GraphModel.Artifact next = breadthFirstIterator.next();
       updatedNodes.add(next);
@@ -336,12 +336,12 @@ public class RecommendationAlgorithm {
     List<UpdateSuggestion> updateSuggestions = new ArrayList<>();
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
-        new AsSubgraph(
-            blossemedDepGraph,
-            blossemedDepGraph.vertexSet().stream()
-                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                .collect(Collectors.toSet()),
-            blossemedDepGraph.edgeSet());
+            new AsSubgraph<>(
+                    blossemedDepGraph,
+                    blossemedDepGraph.vertexSet().stream()
+                            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+                            .collect(Collectors.toSet()),
+                    blossemedDepGraph.edgeSet());
 
     // use the blossom-graph for the min-cut
     // init all edge weights

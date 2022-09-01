@@ -5,7 +5,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -16,8 +15,7 @@ public class Pipeline {
   private final String projectName;
   private final Path modulePomFile;
 
-  public Pipeline(Path rootProjectPomFile, Path modulePomFile, String projectName)
-      throws IOException {
+  public Pipeline(Path rootProjectPomFile, Path modulePomFile, String projectName) {
     this.rootPomFile = rootProjectPomFile;
     this.modulePomFile = modulePomFile;
     if (!Files.exists(rootPomFile)) {
@@ -31,7 +29,7 @@ public class Pipeline {
     return mavenInvokerProject;
   }
 
-  public void runPipeline() throws IOException {
+  public void runPipeline() {
 
     // compile the code
     this.compileAndTest();
@@ -45,7 +43,6 @@ public class Pipeline {
       Triple<Integer, String, String> out = mavenInvokerProject.compile();
       if (out.getLeft() == 0) {
         // nothing to do
-        ;
       } else {
         LOGGER.error("Building project failed");
       }

@@ -1,7 +1,6 @@
 package de.upb.upcy.update.build;
 
 import de.upb.upcy.base.mvn.MavenInvokerProject;
-import edu.emory.mathcs.backport.java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -13,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,20 +147,12 @@ public class PipelineRunner {
     }
     LOGGER.info("Running on file: {}, with projectName: {}", f.toAbsolutePath(), newProjectName);
 
-    try {
+    Pipeline projectPipeline = new Pipeline(projectPomFile, f, newProjectName);
 
-      Pipeline projectPipeline = new Pipeline(projectPomFile, f, newProjectName);
+    projectPipeline.runPipeline();
+    final MavenInvokerProject result = projectPipeline.getMavenInvokerProject();
 
-      projectPipeline.runPipeline();
-      final MavenInvokerProject result = projectPipeline.getMavenInvokerProject();
-
-      return org.apache.commons.lang3.tuple.Pair.of(newProjectName, result);
-    } catch (IOException e) {
-
-      String msg = "Failed project: " + projectName + " with " + e.getMessage();
-
-      LOGGER.error(msg);
-    }
+    return org.apache.commons.lang3.tuple.Pair.of(newProjectName, result);
     return org.apache.commons.lang3.tuple.Pair.of(null, null);
   }
 }

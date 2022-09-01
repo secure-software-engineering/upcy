@@ -33,10 +33,10 @@ public class CypherQueryCreator {
   /**
    * NOTE: Only checks for COMPILE dependency (see constraint of the relation)
    *
-   * @param depGraphfinal
-   * @param sinkPartition
-   * @param libToUpdateInDepGraph
-   * @return
+   * @param depGraphfinal the dependency graph
+   * @param sinkPartition the sink partition
+   * @param libToUpdateInDepGraph the library to update
+   * @return the cypher query
    */
   public String createNeo4JQuery(
       final Graph<GraphModel.Artifact, GraphModel.Dependency> depGraphfinal,

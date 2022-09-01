@@ -28,12 +28,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/** Main class for computing updates for a Maven module */
+/**
+ * Main class for computing updates for a Maven module. Input is read via the CLI.
+ *
+ * @author adann
+ */
 public class MainMavenComputeUpdateSuggestion {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(MainMavenComputeUpdateSuggestion.class);
 
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) {
 
     // create the command line parser
     CommandLineParser parser = new DefaultParser();
@@ -118,8 +122,8 @@ public class MainMavenComputeUpdateSuggestion {
     try {
       Path outputCsvFile = outputDir.resolve(projectName + "_recommendation_results.csv");
       CSVWriter writer = new CSVWriter(new FileWriter(outputCsvFile.toFile()));
-      StatefulBeanToCsv sbc =
-          new StatefulBeanToCsvBuilder(writer).withSeparator(CSVWriter.DEFAULT_SEPARATOR).build();
+      StatefulBeanToCsv<UpdateSuggestion> sbc =
+          new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer).withSeparator(CSVWriter.DEFAULT_SEPARATOR).build();
       sbc.write(updateSuggestion);
       writer.close();
       LOGGER.info("Wrote results to file: {}", outputCsvFile.getFileName().toString());

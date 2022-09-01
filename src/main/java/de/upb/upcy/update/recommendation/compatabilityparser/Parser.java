@@ -87,7 +87,6 @@ public class Parser {
             && !keepClass) {
           // we have a dummy class with only warnings or annotations, we don't count that as
           // incompatibilities
-          ;
         } else {
           final SigTestIncompatibility incompatibility =
               new SigTestIncompatibility(

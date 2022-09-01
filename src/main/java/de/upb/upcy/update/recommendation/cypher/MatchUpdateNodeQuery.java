@@ -1,9 +1,9 @@
 package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class MatchUpdateNodeQuery implements CypherQuery {
 
@@ -15,7 +15,7 @@ public class MatchUpdateNodeQuery implements CypherQuery {
     this.targetVersion = targetVersion;
   }
 
-  public String generateQuery(Collection boundNodes) {
+  public String generateQuery(Collection<GraphModel.Artifact> boundNodes) {
     // 1. the constraint for the library to update
     return String.format(
         "MATCH (%1$s:MvnArtifact) where %1$s.group=\"%2$s\" and %1$s.artifact=\"%3$s\" and %1$s.version=\"%4$s\" and %1$s.classifier=\"null\"",

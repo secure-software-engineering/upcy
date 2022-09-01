@@ -45,8 +45,8 @@ class RecommendationModuleProcess {
           Paths.get(inputParameter.getOutputDir())
               .resolve(inputParameter.getModuleName() + "_recommendation_results.csv");
       CSVWriter writer = new CSVWriter(new FileWriter(outputCsvFile.toFile()));
-      StatefulBeanToCsv sbc =
-          new StatefulBeanToCsvBuilder(writer).withSeparator(CSVWriter.DEFAULT_SEPARATOR).build();
+      StatefulBeanToCsv<UpdateSuggestion> sbc =
+          new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer).withSeparator(CSVWriter.DEFAULT_SEPARATOR).build();
       sbc.write(updateSuggestions);
       writer.close();
       LOGGER.info("Wrote results to file: {}", outputCsvFile.getFileName().toString());
