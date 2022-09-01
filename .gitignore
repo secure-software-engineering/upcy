@@ -1,7 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/java,maven,macos,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=java,maven,macos,intellij
 
-production_*.env
+production*.env
 /runConfigurations/
 .flattened-pom.xml
 
