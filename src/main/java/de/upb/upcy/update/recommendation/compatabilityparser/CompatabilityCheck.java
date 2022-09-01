@@ -8,9 +8,6 @@ import de.upb.upcy.base.sigtest.db.model.check.SigTestCheckDBDoc;
 import de.upb.upcy.base.sigtest.db.model.generate.SigTestDBDoc;
 import de.upb.upcy.base.sigtest.db.model.sootdiff.CallGraphCheckDoc;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,9 +20,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Get the incompatibilities between two versions of a library, using SigTest and the MongoDB with API incompatibilities
+ * Get the incompatibilities between two versions of a library, using SigTest and the MongoDB with
+ * API incompatibilities
+ *
  * @author adann
  */
 public class CompatabilityCheck {

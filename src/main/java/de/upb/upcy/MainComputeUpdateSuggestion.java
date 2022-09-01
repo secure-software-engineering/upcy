@@ -1,5 +1,7 @@
 package de.upb.upcy;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -13,12 +15,6 @@ import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.build.Result;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,8 +34,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.groupingBy;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main class for running the evaluation experiments. Requires as an inout the folder containing the
@@ -190,7 +189,9 @@ public class MainComputeUpdateSuggestion {
       Path outputCsvFile = outputDir.resolve(projectName + "_recommendation_results.csv");
       CSVWriter writer = new CSVWriter(new FileWriter(outputCsvFile.toFile()));
       StatefulBeanToCsv<UpdateSuggestion> sbc =
-          new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer).withSeparator(CSVWriter.DEFAULT_SEPARATOR).build();
+          new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer)
+              .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+              .build();
       sbc.write(aggResults);
       writer.close();
       LOGGER.info("Wrote results to file: {}", outputCsvFile.getFileName().toString());

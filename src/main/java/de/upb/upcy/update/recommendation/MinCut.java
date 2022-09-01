@@ -1,13 +1,10 @@
 package de.upb.upcy.update.recommendation;
 
 import de.upb.upcy.base.graph.GraphModel;
+import java.util.Set;
 import lombok.Data;
 
-import java.util.Set;
-
-/**
- * Represent a computed min-(s,t)-cut
- */
+/** Represent a computed min-(s,t)-cut */
 @Data
 public class MinCut {
 

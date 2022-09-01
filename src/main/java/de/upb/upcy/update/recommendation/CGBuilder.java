@@ -1,6 +1,12 @@
 package de.upb.upcy.update.recommendation;
 
 import com.google.common.base.Stopwatch;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jgrapht.Graph;
@@ -15,15 +21,9 @@ import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 /**
- * Create the module's call graph using the static analysis framework Soot https://github.com/soot-oss/soot
+ * Create the module's call graph using the static analysis framework Soot
+ * https://github.com/soot-oss/soot
  *
  * @author adann
  */

@@ -16,21 +16,6 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
-import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
-import org.jgrapht.graph.AsSubgraph;
-import org.jgrapht.graph.AsUndirectedGraph;
-import org.jgrapht.graph.AsWeightedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.traverse.BreadthFirstIterator;
-import org.neo4j.driver.Driver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,12 +34,25 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
+import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
+import org.jgrapht.graph.AsSubgraph;
+import org.jgrapht.graph.AsUndirectedGraph;
+import org.jgrapht.graph.AsWeightedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.neo4j.driver.Driver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Compute update recommendations and their incompatibilities.
- * 1. compute the naive update
- * 2. find a min-(s,t)-cut with fewer incompatibilities
+ * Compute update recommendations and their incompatibilities. 1. compute the naive update 2. find a
+ * min-(s,t)-cut with fewer incompatibilities
+ *
  * @author adann
  */
 public class RecommendationAlgorithm {
@@ -238,16 +236,16 @@ public class RecommendationAlgorithm {
     // included by the libToUpdate
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded =
-            new AsSubgraph<>(
-                    depGraph,
-                    depGraph.vertexSet().stream()
-                            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                            .collect(Collectors.toSet()),
-                    depGraph.edgeSet().stream()
-                            .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
-                            .collect(Collectors.toSet()));
+        new AsSubgraph<>(
+            depGraph,
+            depGraph.vertexSet().stream()
+                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+                .collect(Collectors.toSet()),
+            depGraph.edgeSet().stream()
+                .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
+                .collect(Collectors.toSet()));
     BreadthFirstIterator<GraphModel.Artifact, GraphModel.Dependency> breadthFirstIterator =
-            new BreadthFirstIterator<>(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
+        new BreadthFirstIterator<>(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
     while (breadthFirstIterator.hasNext()) {
       final GraphModel.Artifact next = breadthFirstIterator.next();
       updatedNodes.add(next);
@@ -343,12 +341,12 @@ public class RecommendationAlgorithm {
     List<UpdateSuggestion> updateSuggestions = new ArrayList<>();
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
-            new AsSubgraph<>(
-                    blossemedDepGraph,
-                    blossemedDepGraph.vertexSet().stream()
-                            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                            .collect(Collectors.toSet()),
-                    blossemedDepGraph.edgeSet());
+        new AsSubgraph<>(
+            blossemedDepGraph,
+            blossemedDepGraph.vertexSet().stream()
+                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+                .collect(Collectors.toSet()),
+            blossemedDepGraph.edgeSet());
 
     // use the blossom-graph for the min-cut
     // init all edge weights
