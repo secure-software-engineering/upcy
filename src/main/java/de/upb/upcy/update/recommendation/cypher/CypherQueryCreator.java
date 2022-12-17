@@ -3,20 +3,25 @@ package de.upb.upcy.update.recommendation.cypher;
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Class to construct cypher queries for finding a solution to the min-(s,t)-cut */
 public class CypherQueryCreator {
@@ -44,6 +49,15 @@ public class CypherQueryCreator {
       final Set<GraphModel.Artifact> cuttedNodes,
       final GraphModel.Artifact libToUpdateInDepGraph,
       final String targetVersion) {
+
+    // TODO: use simple dijskstra for now
+    ShortestPathAlgorithm<GraphModel.Artifact, GraphModel.Dependency> shortestPathAlgorithm =
+        new DijkstraShortestPath<>(depGraphfinal);
+    GraphModel.Artifact projectRootNode =
+        depGraphfinal.vertexSet().stream()
+            .filter(x -> depGraphfinal.inDegreeOf(x) == 0)
+            .findFirst()
+            .get();
 
     Set<GraphModel.Artifact> expandedCuttedNodes = new HashSet<>();
     for (GraphModel.Artifact cutNode : cuttedNodes) {
@@ -127,12 +141,17 @@ public class CypherQueryCreator {
 
     final List<GraphModel.Artifact> predDepNodeOfLibToUpdate =
         nodeToRoots.get(libToUpdateInDepGraph);
-
+    // FIXME: fine until here
     MatchUpdateNodeQuery constAndSubGraph =
         generateLibToUpdateConstraints(libToUpdateInDepGraph, targetVersion);
 
     List<SinkRootQuery> queries =
-        createSinkRootNodeConstraints(libToUpdateInDepGraph, nodeToRoots, targetVersion);
+        createSinkRootNodeConstraints(
+            libToUpdateInDepGraph,
+            nodeToRoots,
+            targetVersion,
+            shortestPathAlgorithm,
+            projectRootNode);
 
     HashSet<GraphModel.Artifact> boundNodes = new HashSet<>();
     String matchQuery = constAndSubGraph.generateQuery(boundNodes);
@@ -184,12 +203,15 @@ public class CypherQueryCreator {
   private List<SinkRootQuery> createSinkRootNodeConstraints(
       GraphModel.Artifact libToUpdateInDepGraph,
       HashMap<GraphModel.Artifact, List<GraphModel.Artifact>> nodeToRoots,
-      String targetVersion) {
+      String targetVersion,
+      ShortestPathAlgorithm<GraphModel.Artifact, GraphModel.Dependency> shortestPathAlgorithm,
+      GraphModel.Artifact projectRootNode) {
 
     List<SinkRootQuery> queries = new ArrayList<>();
     // 2. then generate the constraints only for nodes with >=2 roots,
     final List<Map.Entry<GraphModel.Artifact, List<GraphModel.Artifact>>> collect =
         new ArrayList<>(nodeToRoots.entrySet());
+
     for (Map.Entry<GraphModel.Artifact, List<GraphModel.Artifact>> entry : collect) {
       GraphModel.Artifact sharedNode = entry.getKey();
 
@@ -209,9 +231,60 @@ public class CypherQueryCreator {
 
       final SinkRootQuery sinkRootQuery =
           new SinkRootQuery(
-              sinkRoots, sharedNode, libToUpdateInDepGraph, blossomGraphCreator, targetVersion);
+              sinkRoots,
+              sharedNode,
+              libToUpdateInDepGraph,
+              blossomGraphCreator,
+              targetVersion,
+              shortestPathAlgorithm);
       queries.add(sinkRootQuery);
     }
+    // filter queries that have the same targetBlossom and the same sourceBlossom
+    final Map<GraphModel.Artifact, List<SinkRootQuery>> targetBlossoms =
+        queries.stream()
+            .collect(
+                Collectors.groupingBy(
+                    x -> {
+                      final GraphModel.Artifact blossomNode =
+                          blossomGraphCreator.getBlossomNode(x.getSharedNode());
+                      if (blossomNode != null) {
+                        return blossomNode;
+                      } else {
+                        return x.getSharedNode();
+                      }
+                    }));
+    // for each targetBlossom check if there exists multiple sinkrootquieres with the same source(s)
+    for (Map.Entry<GraphModel.Artifact, List<SinkRootQuery>> entry : targetBlossoms.entrySet()) {
+      // sort the sinkRoots by distance to the project root
+      final List<SinkRootQuery> sortedQueriesBySharedNode =
+          entry.getValue().stream()
+              .sorted(
+                  Comparator.comparingDouble(
+                      x -> shortestPathAlgorithm.getPathWeight(projectRootNode, x.getSharedNode())))
+              .collect(Collectors.toList());
+      HashSet<GraphModel.Artifact> doneSourceBlossoms = new HashSet<>();
+      // TODO: do not create a constraint if it already has been done
+
+      for (SinkRootQuery rootQuery : sortedQueriesBySharedNode) {
+        for (GraphModel.Artifact artifact : rootQuery.getSinkRoots().keySet()) {
+          ListIterator<GraphModel.Artifact> iter =
+              rootQuery.getSinkRoots().get(artifact).listIterator();
+          while (iter.hasNext()) {
+
+            final GraphModel.Artifact nextArtifact = iter.next();
+            GraphModel.Artifact blossomNode = blossomGraphCreator.getBlossomNode(nextArtifact);
+            if (blossomNode == null) {
+              blossomNode = nextArtifact;
+            }
+            if (!doneSourceBlossoms.add(blossomNode)) {
+              // was already in the set, thus we don't need a further constraint
+              iter.remove();
+            }
+          }
+        }
+      }
+    }
+
     return queries;
   }
 

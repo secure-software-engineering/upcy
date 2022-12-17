@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main class for running the evaluation experiments. Requires as an inout the folder containing the
+ * Main class for running the evaluation experiments. Requires as an input the folder containing the
  * projects and _update-step.csv files.
  *
  * @author adann

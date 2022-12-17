@@ -16,6 +16,7 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +46,9 @@ import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.nio.Attribute;
+import org.jgrapht.nio.DefaultAttribute;
+import org.jgrapht.nio.dot.DOTExporter;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.neo4j.driver.Driver;
 import org.slf4j.Logger;
@@ -339,6 +344,17 @@ public class RecommendationAlgorithm {
 
     LOGGER.info("Compute Min-Cut solution");
     List<UpdateSuggestion> updateSuggestions = new ArrayList<>();
+    // export graph for debugging
+    final DOTExporter<GraphModel.Artifact, GraphModel.Dependency> objectObjectDOTExporter =
+        new DOTExporter<>();
+    objectObjectDOTExporter.setVertexAttributeProvider(
+        v -> {
+          Map<String, Attribute> map = new LinkedHashMap<>();
+          map.put("label", DefaultAttribute.createAttribute(v.toGav()));
+          return map;
+        });
+
+    objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
         new AsSubgraph<>(
@@ -413,8 +429,8 @@ public class RecommendationAlgorithm {
         final GraphModel.Artifact edgeTarget = unDirectedDepGraph.getEdgeTarget(cutEdge);
         cuttedNodes.add(edgeTarget);
       }
-
-      // also expand the blossom Nodes in the unupdated nodes -- akka the source partion
+      // FIXME: fine until here
+      // also expand the blossom Nodes in the un-updated nodes -- akka the source partition
       {
         Set<GraphModel.Artifact> expandedNodes = new HashSet<>();
         for (Iterator<GraphModel.Artifact> iter = sourcePartition.iterator(); iter.hasNext(); ) {
@@ -456,7 +472,8 @@ public class RecommendationAlgorithm {
           break;
         }
       }
-      if (updateSubGraph == null) {
+      // could not find solution
+      if (updateSubGraph == null || updateSubGraph.vertexSet().isEmpty()) {
         LOGGER.error("No solution found in NEO4j");
 
         UpdateSuggestion failedUpdate = new UpdateSuggestion();
@@ -552,7 +569,7 @@ public class RecommendationAlgorithm {
       }
 
       minCutUpdateSuggestion.setUpdateSteps(updateSteps);
-      // add last to avoid changes in set..
+      // add last to avoid changes in set ..
       updateSuggestions.add(minCutUpdateSuggestion);
 
       // check the weight of violations ...; if 0 (no violations) done; else compute further

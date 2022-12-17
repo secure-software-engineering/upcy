@@ -1,9 +1,11 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,9 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
+
+  public Map<GraphModel.Artifact, List<GraphModel.Artifact>> getSinkRoots() {
+    return sinkRoots;
+  }
 
   private final Map<GraphModel.Artifact, List<GraphModel.Artifact>> sinkRoots;
   private final GraphModel.Artifact sharedNode;
@@ -23,18 +30,21 @@ public class SinkRootQuery implements CypherQuery {
   private final BlossomGraphCreator blossomGraphCreator;
   private final Set<GraphModel.Artifact> nodesBoundInThisQuery = new HashSet<>();
   private final String targetVersion;
+  private final ShortestPathAlgorithm<GraphModel.Artifact, GraphModel.Dependency> shortestPath;
 
   public SinkRootQuery(
       Map<GraphModel.Artifact, List<GraphModel.Artifact>> sinkRoots,
       GraphModel.Artifact sharedNode,
       GraphModel.Artifact libToUpdateInDepGraph,
       BlossomGraphCreator blossomGraphCreator,
-      String targetVersion) {
+      String targetVersion,
+      ShortestPathAlgorithm<GraphModel.Artifact, GraphModel.Dependency> shortestPath) {
     this.sinkRoots = sinkRoots;
     this.sharedNode = sharedNode;
     this.libToUpdateInDepGraph = libToUpdateInDepGraph;
     this.blossomGraphCreator = blossomGraphCreator;
     this.targetVersion = targetVersion;
+    this.shortestPath = shortestPath;
   }
 
   public GraphModel.Artifact getSharedNode() {
@@ -42,6 +52,9 @@ public class SinkRootQuery implements CypherQuery {
   }
 
   public String generateQuery(Collection<GraphModel.Artifact> boundNodes) {
+    if (sinkRoots.entrySet().size() == 0) {
+      return "";
+    }
 
     if (sinkRoots.size() == 1) {
 
@@ -95,8 +108,27 @@ public class SinkRootQuery implements CypherQuery {
         final Collection<GraphModel.Artifact> artifacts =
             blossomGraphCreator.expandBlossomNode(rNode);
         if (artifacts != null && !artifacts.isEmpty()) {
-          // we have a blossom node, select one by random --> we choose the first
-          rNode = (GraphModel.Artifact) artifacts.toArray()[0];
+          // we have a blossom node, select one by random --> we choose the first //FIXME: this
+          // breaks
+          // BROKEN rNode = (GraphModel.Artifact) artifacts.toArray()[0];
+          // insteand choose one that is an actual parent and that has the shortest path, choose one
+          // that has the shortest path
+          // find the shortest
+          int pathLength = Integer.MAX_VALUE;
+          for (GraphModel.Artifact artifact : artifacts) {
+            final GraphPath<GraphModel.Artifact, GraphModel.Dependency> path =
+                shortestPath.getPath(artifact, sharedNode);
+            if (path != null) {
+              int curPath = path.getLength();
+              if (curPath < pathLength) {
+                pathLength = curPath;
+                rNode = artifact;
+              }
+            }
+          }
+          if (pathLength == Integer.MAX_VALUE) {
+            System.out.println("Error path not found");
+          }
         }
         rootNodesToCreateConstFor.add(rNode);
       }
@@ -107,6 +139,7 @@ public class SinkRootQuery implements CypherQuery {
       // create the constraints
       Map<String, String> pathNameAndExpression = new HashMap<>();
       for (GraphModel.Artifact rNode : rootNodesToCreateConstFor) {
+        // TODO: use the path as an initial length
         String pathName = Utils.getPathName(rNode, sharedNode);
         String expression =
             String.format(
