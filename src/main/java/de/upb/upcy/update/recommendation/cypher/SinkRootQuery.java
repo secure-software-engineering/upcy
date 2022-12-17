@@ -52,9 +52,6 @@ public class SinkRootQuery implements CypherQuery {
   }
 
   public String generateQuery(Collection<GraphModel.Artifact> boundNodes) {
-    if (sinkRoots.entrySet().size() == 0) {
-      return "";
-    }
 
     if (sinkRoots.size() == 1) {
 

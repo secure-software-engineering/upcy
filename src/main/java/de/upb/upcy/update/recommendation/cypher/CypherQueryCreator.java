@@ -16,8 +16,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -266,20 +266,17 @@ public class CypherQueryCreator {
       // TODO: do not create a constraint if it already has been done
 
       for (SinkRootQuery rootQuery : sortedQueriesBySharedNode) {
-        for (GraphModel.Artifact artifact : rootQuery.getSinkRoots().keySet()) {
-          ListIterator<GraphModel.Artifact> iter =
-              rootQuery.getSinkRoots().get(artifact).listIterator();
-          while (iter.hasNext()) {
+        Iterator<GraphModel.Artifact> iter = rootQuery.getSinkRoots().keySet().iterator();
+        while (iter.hasNext()) {
 
-            final GraphModel.Artifact nextArtifact = iter.next();
-            GraphModel.Artifact blossomNode = blossomGraphCreator.getBlossomNode(nextArtifact);
-            if (blossomNode == null) {
-              blossomNode = nextArtifact;
-            }
-            if (!doneSourceBlossoms.add(blossomNode)) {
-              // was already in the set, thus we don't need a further constraint
-              iter.remove();
-            }
+          final GraphModel.Artifact nextArtifact = iter.next();
+          GraphModel.Artifact blossomNode = blossomGraphCreator.getBlossomNode(nextArtifact);
+          if (blossomNode == null) {
+            blossomNode = nextArtifact;
+          }
+          if (!doneSourceBlossoms.add(blossomNode)) {
+            // was already in the set, thus we don't need a further constraint
+            iter.remove();
           }
         }
       }
