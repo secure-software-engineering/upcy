@@ -124,7 +124,7 @@ public class ComputeRecommendationProcess {
 
         // run the process and maybe kill it
         String json = OBJECT_MAPPER.writeValueAsString(inputParameter);
-        System.out.println("Start SigTestProcess for: " + module.getKey());
+        System.out.println("Start RecommendationModuleProcess for: " + module.getKey());
         final int retVal =
             JavaProcess.exec(
                 RecommendationModuleProcess.class,

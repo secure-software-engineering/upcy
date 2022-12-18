@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
 
+  private static final int SUBGRAPH_LIMIT = 10;
+
   public Map<GraphModel.Artifact, List<GraphModel.Artifact>> getSinkRoots() {
     return sinkRoots;
   }
@@ -314,19 +316,56 @@ public class SinkRootQuery implements CypherQuery {
     return nodesBoundInThisQuery;
   }
 
-  public String getSubGraph() {
+  public String getSubGraph(Collection<GraphModel.Artifact> boundNodes) {
     String ret = "";
     final Set<GraphModel.Artifact> roots =
         this.nodesBoundInThisQuery.stream() // no subgraph for the shared node required
             .filter(x -> x != this.sharedNode)
             .collect(Collectors.toSet());
-    for (GraphModel.Artifact root : roots) {
+/*    for (GraphModel.Artifact root : roots) {
       ret =
           ret
               + "\n"
               + String.format(
                   "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
                   Utils.getPathName(root, null), Utils.getNodeNameForCypher(root));
+    }*/
+    if(!roots.isEmpty()){
+      List<String> importStatements = new ArrayList<>();
+      List<String> finalNames = new ArrayList<>();
+
+
+      //FIXME: use WITH and LIMIT 10 -- to improve performance here
+    for (GraphModel.Artifact root : roots) {
+
+      if (boundNodes.contains(root)) {
+        // import it
+        importStatements.add(Utils.getNodeNameForCypher(root));
+      }
+      final String pathName = Utils.getPathName(root, null);
+      final String nodeNameForCypher = Utils.getNodeNameForCypher(root);
+      finalNames.add(pathName);
+      ret =
+              ret
+                      + "\n"
+                      + String.format(
+                      "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
+                      pathName, nodeNameForCypher);
+    }
+      String format =  "CALL{ "
+              + ((importStatements.size() > 0)
+              ? ("WITH " + String.join(", ", importStatements))
+              : "")
+              + "\n"
+              + ret
+              + "\n"
+              + " RETURN "
+              + String.join(", ", finalNames)
+              + " LIMIT "
+              + SUBGRAPH_LIMIT +"}";
+
+
+    return format;
     }
     return ret;
   }

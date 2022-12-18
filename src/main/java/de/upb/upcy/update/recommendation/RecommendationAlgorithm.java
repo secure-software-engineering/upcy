@@ -564,7 +564,7 @@ public class RecommendationAlgorithm {
                         + ":"
                         + sinkRootNode.getVersion()));
           }
-          // add the blossom update steps
+          // TODO add the blossom update steps
         }
       }
 
