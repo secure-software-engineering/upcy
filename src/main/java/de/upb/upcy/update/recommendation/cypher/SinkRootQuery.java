@@ -112,7 +112,7 @@ public class SinkRootQuery implements CypherQuery {
         // generate easy match subgraph
         final String format =
             String.format(
-                "MATCH %2$s = ((%1$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(%3$s:MvnArtifact))",
+                "MATCH %2$s = ((%1$s:MvnArtifact)-[:DEPENDS_ON*0..%4$s {scope:\"COMPILE\"}]->(%3$s:MvnArtifact))",
                 Utils.getNodeNameForCypher(rootNode),
                 Utils.getPathName(rootNode, libToUpdateInDepGraph),
                 Utils.getNodeNameForCypher(libToUpdateInDepGraph),
