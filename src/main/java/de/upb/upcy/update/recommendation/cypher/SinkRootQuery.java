@@ -24,6 +24,19 @@ public class SinkRootQuery implements CypherQuery {
     return sinkRoots;
   }
 
+  private static int MIN_PATH_LENGTH = 5;
+
+  static {
+    String pathLength = System.getenv("MIN_PATH_LENGTH");
+    if (StringUtils.isNotBlank(pathLength)) {
+      try {
+        MIN_PATH_LENGTH = Integer.parseInt(pathLength);
+      } catch (NumberFormatException e) {
+        // nothing
+      }
+    }
+  }
+
   private final Map<GraphModel.Artifact, List<GraphModel.Artifact>> sinkRoots;
   private final GraphModel.Artifact sharedNode;
   private final GraphModel.Artifact libToUpdateInDepGraph;
@@ -149,7 +162,10 @@ public class SinkRootQuery implements CypherQuery {
         String expression =
             String.format(
                 "%1$s = ( (%2$s:MvnArtifact)-[:DEPENDS_ON*0..%4$s {scope:\"COMPILE\"}]->(%3$s:MvnArtifact) )",
-                pathName, Utils.getNodeNameForCypher(rNode), sharedNodeName, pathLength);
+                pathName,
+                Utils.getNodeNameForCypher(rNode),
+                sharedNodeName,
+                Math.max(pathLength, MIN_PATH_LENGTH));
         pathNameAndExpression.put(pathName, expression);
       }
       List<String> nodeWhereConditions = new ArrayList<>();
