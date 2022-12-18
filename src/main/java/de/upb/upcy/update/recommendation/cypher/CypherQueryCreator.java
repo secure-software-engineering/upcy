@@ -265,6 +265,12 @@ public class CypherQueryCreator {
       // TODO: do not create a constraint if it already has been done
 
       for (SinkRootQuery rootQuery : sortedQueriesBySharedNode) {
+        // don't touch the libToUpdate Query
+        if(rootQuery.getSharedNode() == libToUpdateInDepGraph){
+          //TODO not so nice but works
+          continue;
+        }
+
         Iterator<GraphModel.Artifact> iter = rootQuery.getSinkRoots().keySet().iterator();
         while (iter.hasNext()) {
 
