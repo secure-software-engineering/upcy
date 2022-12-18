@@ -414,7 +414,7 @@ public class RecommendationAlgorithm {
         minCutWeight = cutWeight;
         LOGGER.info("found min-cut with weight: {}", minCutWeight);
       }
-      if (cutWeight > minCutWeight) {
+      else  {
         // it is NOT another min-cut; since the weight is higher
         LOGGER.trace("more weight then min-cut");
         continue;

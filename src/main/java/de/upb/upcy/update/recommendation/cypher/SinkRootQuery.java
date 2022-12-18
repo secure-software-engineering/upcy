@@ -138,10 +138,18 @@ public class SinkRootQuery implements CypherQuery {
       for (GraphModel.Artifact rNode : rootNodesToCreateConstFor) {
         // TODO: use the path as an initial length
         String pathName = Utils.getPathName(rNode, sharedNode);
+        int pathLength = 3;
+        final GraphPath<GraphModel.Artifact, GraphModel.Dependency> path =
+            shortestPath.getPath(rNode, sharedNode);
+        if (path != null) {
+          pathLength = path.getLength();
+        } else {
+          System.err.println("NO PATH FOUND");
+        }
         String expression =
             String.format(
-                "%1$s = ( (%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(%3$s:MvnArtifact) )",
-                pathName, Utils.getNodeNameForCypher(rNode), sharedNodeName);
+                "%1$s = ( (%2$s:MvnArtifact)-[:DEPENDS_ON*0..%4$s {scope:\"COMPILE\"}]->(%3$s:MvnArtifact) )",
+                pathName, Utils.getNodeNameForCypher(rNode), sharedNodeName, pathLength);
         pathNameAndExpression.put(pathName, expression);
       }
       List<String> nodeWhereConditions = new ArrayList<>();
@@ -178,7 +186,7 @@ public class SinkRootQuery implements CypherQuery {
           // lookup, since it filters the starting nodes
           String whereExpression =
               String.format(
-                  "%1$s.group=\"%2$s\" AND  %1$s.artifact=\"%3$s\" AND %1$s.version >= \"%4$s\"",
+                  "%1$s.group=\"%2$s\" AND  %1$s.artifact=\"%3$s\" ",
                   Utils.getNodeNameForCypher(rNode),
                   rNode.getGroupId(),
                   rNode.getArtifactId(),
@@ -190,6 +198,12 @@ public class SinkRootQuery implements CypherQuery {
                 whereExpression
                     + String.format(
                         "AND %1$s.version=\"%2$s\"",
+                        Utils.getNodeNameForCypher(rNode), targetVersion);
+          } else {
+            whereExpression =
+                whereExpression
+                    + String.format(
+                        "AND %1$s.version >= \"%2$s\"",
                         Utils.getNodeNameForCypher(rNode), targetVersion);
           }
 
