@@ -82,16 +82,58 @@ public class SinkRootQuery implements CypherQuery {
 
         final Collection<GraphModel.Artifact> artifacts =
             blossomGraphCreator.expandBlossomNode(rootNode);
+        int pathLength = Integer.MAX_VALUE;
+
         if (artifacts != null && !artifacts.isEmpty()) {
-          // we have a blossom node, select one by random --> we choose the first
-          rootNode = (GraphModel.Artifact) artifacts.toArray()[0];
+          // FIXME: breoken we have a blossom node, select one by random --> we choose the first
+          // rootNode = (GraphModel.Artifact) artifacts.toArray()[0];
+          // instead choose one that is an actual parent and that has the shortest path, choose one
+          // that has the shortest path
+          // find the shortest
+          for (GraphModel.Artifact artifact : artifacts) {
+            final GraphPath<GraphModel.Artifact, GraphModel.Dependency> path =
+                shortestPath.getPath(artifact, sharedNode);
+            if (path != null) {
+              int curPath = path.getLength();
+              if (curPath < pathLength) {
+                pathLength = curPath;
+                rootNode = artifact;
+              }
+            }
+          }
+          if (pathLength == Integer.MAX_VALUE) {
+            System.out.println("Error path not found");
+          }
+        }
+        if (pathLength == Integer.MAX_VALUE) {
+          // default to
+          pathLength = 3;
         }
         // generate easy match subgraph
-        return String.format(
-            "MATCH %2$s = ((%1$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(%3$s:MvnArtifact))",
-            Utils.getNodeNameForCypher(rootNode),
-            Utils.getPathName(rootNode, libToUpdateInDepGraph),
-            Utils.getNodeNameForCypher(libToUpdateInDepGraph));
+        final String format =
+            String.format(
+                "MATCH %2$s = ((%1$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(%3$s:MvnArtifact))",
+                Utils.getNodeNameForCypher(rootNode),
+                Utils.getPathName(rootNode, libToUpdateInDepGraph),
+                Utils.getNodeNameForCypher(libToUpdateInDepGraph),
+                Math.max(pathLength, MIN_PATH_LENGTH));
+
+        if (boundNodes.contains(rootNode)) {
+          // leave it
+          return format;
+        } else {
+          // for the shared node
+          String whereExpression =
+              String.format(
+                  "%1$s.group=\"%2$s\" AND  %1$s.artifact=\"%3$s\" AND %1$s.version >= \"%4$s\" ",
+                  Utils.getNodeNameForCypher(rootNode),
+                  rootNode.getGroupId(),
+                  rootNode.getArtifactId(),
+                  rootNode.getVersion());
+          nodesBoundInThisQuery.add(sharedNode);
+          return format + " WHERE " + whereExpression;
+        }
+
       } else {
         return "";
       }
@@ -121,7 +163,7 @@ public class SinkRootQuery implements CypherQuery {
           // we have a blossom node, select one by random --> we choose the first //FIXME: this
           // breaks
           // BROKEN rNode = (GraphModel.Artifact) artifacts.toArray()[0];
-          // insteand choose one that is an actual parent and that has the shortest path, choose one
+          // instead choose one that is an actual parent and that has the shortest path, choose one
           // that has the shortest path
           // find the shortest
           int pathLength = Integer.MAX_VALUE;
@@ -220,7 +262,7 @@ public class SinkRootQuery implements CypherQuery {
                 whereExpression
                     + String.format(
                         "AND %1$s.version >= \"%2$s\"",
-                        Utils.getNodeNameForCypher(rNode), targetVersion);
+                        Utils.getNodeNameForCypher(rNode), rNode.getVersion());
           }
 
           nodeWhereConditions.add(whereExpression);
