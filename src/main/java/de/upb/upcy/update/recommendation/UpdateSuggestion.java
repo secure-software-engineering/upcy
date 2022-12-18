@@ -26,9 +26,11 @@ public class UpdateSuggestion {
   @CsvBindByName private String targetGav;
   @CsvBindByName private String updateGav;
   @CsvBindByName private Collection<Violation> violations;
+
   @CsvBindByName
-  @CsvBindAndSplitByName(elementType = Pair.class,  writeDelimiter = "/")
+  @CsvBindAndSplitByName(elementType = Pair.class, writeDelimiter = "/")
   private List<Pair<String, String>> updateSteps = new ArrayList<>();
+
   @CsvBindByName private boolean isSimpleUpdate;
   @CsvBindByName private SuggestionStatus status;
   @CsvBindByName private List<String> messages;

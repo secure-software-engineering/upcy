@@ -413,8 +413,7 @@ public class RecommendationAlgorithm {
         // should only be possible in the first round
         minCutWeight = cutWeight;
         LOGGER.info("found min-cut with weight: {}", minCutWeight);
-      }
-      else  {
+      } else {
         // it is NOT another min-cut; since the weight is higher
         LOGGER.trace("more weight then min-cut");
         continue;
@@ -506,8 +505,23 @@ public class RecommendationAlgorithm {
           new UpdateCheck(shrinkedCG, depGraph, sourcePartition, updateSubGraph, nodeMatchUtil);
       Collection<Violation> updateViolations = null;
       try {
-        updateViolations =
-            updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
+        // FIXME: this is wrong -- the update nodes are the cut nodes
+        //  updateViolations =
+        //  updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
+        Set<GraphModel.Artifact> expandedCuttedNodes = new HashSet<>();
+        for (GraphModel.Artifact cutNode : cuttedNodes) {
+          {
+            final Collection<GraphModel.Artifact> artifacts =
+                blossomGraphCreator.expandBlossomNode(cutNode);
+            if (artifacts != null) {
+              // is a blossom node
+              expandedCuttedNodes.addAll(artifacts);
+            } else {
+              expandedCuttedNodes.add(cutNode);
+            }
+          }
+        }
+        updateViolations = updateCheck.computeViolation(expandedCuttedNodes);
         minCutUpdateSuggestion.setViolations(updateViolations);
         minCutUpdateSuggestion.setStatus(UpdateSuggestion.SuggestionStatus.SUCCESS);
         minCutUpdateSuggestion.setNrOfViolations(updateViolations.size());

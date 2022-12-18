@@ -1,11 +1,9 @@
 package de.upb.upcy.update.recommendation.cypher;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -15,8 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.groupingBy;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 
 public class SinkRootQuery implements CypherQuery {
 
@@ -322,7 +321,7 @@ public class SinkRootQuery implements CypherQuery {
         this.nodesBoundInThisQuery.stream() // no subgraph for the shared node required
             .filter(x -> x != this.sharedNode)
             .collect(Collectors.toSet());
-/*    for (GraphModel.Artifact root : roots) {
+    /*    for (GraphModel.Artifact root : roots) {
       ret =
           ret
               + "\n"
@@ -330,42 +329,42 @@ public class SinkRootQuery implements CypherQuery {
                   "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
                   Utils.getPathName(root, null), Utils.getNodeNameForCypher(root));
     }*/
-    if(!roots.isEmpty()){
+    if (!roots.isEmpty()) {
       List<String> importStatements = new ArrayList<>();
       List<String> finalNames = new ArrayList<>();
 
+      // FIXME: use WITH and LIMIT 10 -- to improve performance here
+      for (GraphModel.Artifact root : roots) {
 
-      //FIXME: use WITH and LIMIT 10 -- to improve performance here
-    for (GraphModel.Artifact root : roots) {
-
-      if (boundNodes.contains(root)) {
-        // import it
-        importStatements.add(Utils.getNodeNameForCypher(root));
+        if (boundNodes.contains(root)) {
+          // import it
+          importStatements.add(Utils.getNodeNameForCypher(root));
+        }
+        final String pathName = Utils.getPathName(root, null);
+        final String nodeNameForCypher = Utils.getNodeNameForCypher(root);
+        finalNames.add(pathName);
+        ret =
+            ret
+                + "\n"
+                + String.format(
+                    "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
+                    pathName, nodeNameForCypher);
       }
-      final String pathName = Utils.getPathName(root, null);
-      final String nodeNameForCypher = Utils.getNodeNameForCypher(root);
-      finalNames.add(pathName);
-      ret =
-              ret
-                      + "\n"
-                      + String.format(
-                      "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
-                      pathName, nodeNameForCypher);
-    }
-      String format =  "CALL{ "
+      String format =
+          "CALL{ "
               + ((importStatements.size() > 0)
-              ? ("WITH " + String.join(", ", importStatements))
-              : "")
+                  ? ("WITH " + String.join(", ", importStatements))
+                  : "")
               + "\n"
               + ret
               + "\n"
               + " RETURN "
               + String.join(", ", finalNames)
               + " LIMIT "
-              + SUBGRAPH_LIMIT +"}";
+              + SUBGRAPH_LIMIT
+              + "}";
 
-
-    return format;
+      return format;
     }
     return ret;
   }
