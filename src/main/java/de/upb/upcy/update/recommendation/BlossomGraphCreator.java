@@ -1,6 +1,12 @@
 package de.upb.upcy.update.recommendation;
 
 import de.upb.upcy.base.graph.GraphModel;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.AbstractBaseGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,11 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.AbstractBaseGraph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class for creating and expanding blossoms in the dependency graph
@@ -33,7 +34,6 @@ public class BlossomGraphCreator {
 
   public BlossomGraphCreator(
       Graph<GraphModel.Artifact, GraphModel.Dependency> depGraph, GraphModel.Artifact rootNode) {
-
     this.depGraph = depGraph;
     this.rootNode = rootNode;
     nodeToBlossom = new HashMap<>();
@@ -44,11 +44,12 @@ public class BlossomGraphCreator {
       Graph<GraphModel.Artifact, GraphModel.Dependency> depGraph, GraphModel.Artifact rootNode) {
     // compute blossoms
     final Map<String, List<GraphModel.Artifact>> blossomNodes =
-        depGraph.vertexSet()
+        depGraph
+            .vertexSet()
             .stream() // ignore the groupId of the project that is analyzed, e.g., multi module
             // projects
             .filter(x -> !StringUtils.equals(x.getGroupId(), rootNode.getGroupId()))
-            .collect(Collectors.groupingBy(GraphModel.Artifact::getGroupId));
+            .collect(Collectors.groupingBy(x -> getClearedGroupId(x.getGroupId())));
 
     // remove blossoms that only contain one node
     for (Iterator<Map.Entry<String, List<GraphModel.Artifact>>> iter =
@@ -155,15 +156,19 @@ public class BlossomGraphCreator {
   }
 
   public boolean isBlossomNode(String oneNodeGroupId, String secNodeGroupId) {
-    if (StringUtils.equals(oneNodeGroupId, secNodeGroupId)) {
+    if (StringUtils.equals(getClearedGroupId(oneNodeGroupId), getClearedGroupId(secNodeGroupId))) {
       LOGGER.trace("Skipped for blossom group");
       return true;
-    } // special case for springframework
-    if (StringUtils.startsWith(oneNodeGroupId, "org.springframework")
-        && StringUtils.startsWith(secNodeGroupId, "org.springframework")) {
-      LOGGER.trace("Skipped for blossom group");
-      return true;
+    } else {
+      return false;
     }
-    return false;
+  }
+
+  private static String getClearedGroupId(String nodeGroupId) {
+    // special case for springframework
+    if (StringUtils.startsWith(nodeGroupId, "org.springframework")) {
+      return "org.springframework";
+    }
+    return nodeGroupId;
   }
 }

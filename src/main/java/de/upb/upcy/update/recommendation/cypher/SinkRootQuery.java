@@ -110,21 +110,24 @@ public class SinkRootQuery implements CypherQuery {
           // default to
           pathLength = 3;
         }
+        //  -- avoid duplicate here with LIMIT 1
         // generate easy match subgraph
+        final String pathName = Utils.getPathName(rootNode, libToUpdateInDepGraph);
         final String format =
             String.format(
                 "MATCH %2$s = ((%1$s:MvnArtifact)-[:DEPENDS_ON*0..%4$s {scope:\"COMPILE\"}]->(%3$s:MvnArtifact))",
                 Utils.getNodeNameForCypher(rootNode),
-                Utils.getPathName(rootNode, libToUpdateInDepGraph),
+                pathName,
                 Utils.getNodeNameForCypher(libToUpdateInDepGraph),
                 Math.max(pathLength, MIN_PATH_LENGTH));
 
+        String whereExpression = "";
         if (boundNodes.contains(rootNode)) {
-          // leave it
-          return format;
+          // leave it, no where-expr necessary
+          whereExpression = "";
         } else {
           // for the shared node
-          String whereExpression =
+          whereExpression =
               String.format(
                   "%1$s.group=\"%2$s\" AND  %1$s.artifact=\"%3$s\" AND %1$s.version >= \"%4$s\" ",
                   Utils.getNodeNameForCypher(rootNode),
@@ -132,8 +135,20 @@ public class SinkRootQuery implements CypherQuery {
                   rootNode.getArtifactId(),
                   rootNode.getVersion());
           nodesBoundInThisQuery.add(sharedNode);
-          return format + " WHERE " + whereExpression;
         }
+
+        return String.format(
+            "CALL{ "
+                + "WITH "
+                + Utils.getNodeNameForCypher(sharedNode)
+                + "\n"
+                + format
+                + "\n"
+                + ((StringUtils.isNotBlank(whereExpression)) ? " WHERE " + whereExpression : "")
+                + "\n"
+                + " RETURN "
+                + pathName
+                + " LIMIT 1 } \n");
 
       } else {
         return "";

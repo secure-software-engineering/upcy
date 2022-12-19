@@ -306,7 +306,9 @@ public class UpdateCheck {
         // path length after transformation, over the initial updated node "node"
         final GraphPath<MvnArtifactNode, DependencyRelation> nextPath =
             updateSubGraphShortestPath.getPath(inNeo4jGraph.get(), newDepNode);
-        if (pathAfterTransformation != null
+        if (nextPath == null) {
+          continue;
+        } else if (pathAfterTransformation != null
             && nextPath.getLength() < pathAfterTransformation.getLength()) {
           pathAfterTransformation = nextPath;
         } else if (pathAfterTransformation == null) {

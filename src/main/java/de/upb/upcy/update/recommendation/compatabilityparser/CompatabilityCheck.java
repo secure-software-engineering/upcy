@@ -86,27 +86,28 @@ public class CompatabilityCheck {
                 + nextArtifact
                 + ","
                 + nextVersion);
-        MainComputeIncompatibilities mainComputeInCompatibilities =
-            new MainComputeIncompatibilities(path);
-
-        if ((mode & SigGenerateMode.SIGTEST.id) != 0) {
-          mainComputeInCompatibilities.generateSignatures();
-        }
-
-        if ((mode & SigGenerateMode.ABI.id) != 0) {
-
-          mainComputeInCompatibilities.compareABI();
-        }
-
-        if ((mode & SigGenerateMode.SOOTDIFF.id) != 0) {
-
-          mainComputeInCompatibilities.compareSootDiff();
-        }
-        if ((mode & SigGenerateMode.SOURCE.id) != 0) {
-
-          mainComputeInCompatibilities.compareSource();
-        }
       }
+      MainComputeIncompatibilities mainComputeInCompatibilities =
+          new MainComputeIncompatibilities(path);
+
+      if ((mode & SigGenerateMode.SIGTEST.id) != 0) {
+        mainComputeInCompatibilities.generateSignatures();
+      }
+
+      if ((mode & SigGenerateMode.ABI.id) != 0) {
+
+        mainComputeInCompatibilities.compareABI();
+      }
+
+      if ((mode & SigGenerateMode.SOOTDIFF.id) != 0) {
+
+        mainComputeInCompatibilities.compareSootDiff();
+      }
+      if ((mode & SigGenerateMode.SOURCE.id) != 0) {
+
+        mainComputeInCompatibilities.compareSource();
+      }
+
     } catch (IOException exception) {
       LOGGER.error("Failed to create file for signature generation", exception);
     }

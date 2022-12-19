@@ -132,8 +132,8 @@ public class ComputeRecommendationProcess {
                 Collections.singletonList(json),
                 TIMEOUT_IN_SEC);
         System.out.println(
-            "Done de.upb.thetis.eval.compatibility.SigTestProcess with return value: " + retVal);
-
+            "Done RecommendationModuleProcess with return value: " + retVal);
+      //TODO ??? Call process kill?
       } catch (InterruptedException e) {
         LOGGER.error("Timout for module");
       } catch (JsonProcessingException e) {

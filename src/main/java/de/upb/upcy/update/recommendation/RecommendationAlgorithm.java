@@ -302,7 +302,7 @@ public class RecommendationAlgorithm {
     // store it as a suggestions
     UpdateSuggestion simpleUpdateSuggestion = new UpdateSuggestion();
     simpleUpdateSuggestion.setOrgGav(libToUpdateInDepGraph.toGav());
-    simpleUpdateSuggestion.setSimpleUpdate(true);
+
     String updateGav =
         libToUpdateInDepGraph.getGroupId()
             + ":"
@@ -311,6 +311,13 @@ public class RecommendationAlgorithm {
             + pickedVersion;
     simpleUpdateSuggestion.setTargetGav(targetGav);
     simpleUpdateSuggestion.setUpdateGav(updateGav);
+    simpleUpdateSuggestion.setSimpleUpdate(true);
+    // if target targetGav and updateGav differ we found a better solution than the naive update
+    if (!StringUtils.equals(targetGav, updateGav)) {
+      simpleUpdateSuggestion.setNaiveUpdate(false);
+    } else {
+      simpleUpdateSuggestion.setNaiveUpdate(true);
+    }
     ArrayList<Pair<String, String>> updateSteps = new ArrayList<>();
     updateSteps.add(Pair.of(libToUpdateInDepGraph.toGav(), updateGav));
     simpleUpdateSuggestion.setUpdateSteps(updateSteps);
@@ -318,7 +325,11 @@ public class RecommendationAlgorithm {
       simpleUpdateViolations =
           updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
       simpleUpdateSuggestion.setViolations(simpleUpdateViolations);
-      simpleUpdateSuggestion.setNrOfViolations(simpleUpdateViolations.size());
+      simpleUpdateSuggestion.setNrOfViolations(
+          Math.toIntExact(
+              simpleUpdateViolations.stream()
+                  .filter(x -> x.getViolatedCalls().size() > 0)
+                  .count()));
       simpleUpdateSuggestion.setNrOfViolatedCalls(
           simpleUpdateViolations.stream()
               .mapToInt(x -> x == null ? 0 : x.getViolatedCalls().size())
@@ -409,13 +420,15 @@ public class RecommendationAlgorithm {
 
       final double cutWeight =
           minimumSTCutAlgorithm.calculateMinCut(rootNode, libToUpdateForMincut);
-      if (cutWeight < minCutWeight) {
+      if (cutWeight <= minCutWeight) {
         // should only be possible in the first round
         minCutWeight = cutWeight;
         LOGGER.info("found min-cut with weight: {}", minCutWeight);
       } else {
         // it is NOT another min-cut; since the weight is higher
         LOGGER.trace("more weight then min-cut");
+        // FIXME ?? Reduce weight again?
+        unDirectedDepGraph.setEdgeWeight(curEdge, 1);
         continue;
       }
       final Set<GraphModel.Dependency> cutEdges = minimumSTCutAlgorithm.getCutEdges();
@@ -476,13 +489,21 @@ public class RecommendationAlgorithm {
         LOGGER.error("No solution found in NEO4j");
 
         UpdateSuggestion failedUpdate = new UpdateSuggestion();
+        failedUpdate.setNaiveUpdate(false);
         failedUpdate.setOrgGav(libToUpdateInDepGraph.toGav());
         failedUpdate.setTargetGav(targetGav);
         failedUpdate.setSimpleUpdate(false);
         failedUpdate.setCutWeight((int) Math.round(minCutWeight));
         failedUpdate.setStatus(UpdateSuggestion.SuggestionStatus.NO_NEO4J_ENTRY);
         failedUpdate.setNrOfViolations(-1);
-        return Collections.singletonList(failedUpdate);
+        // FIXME: DO not return but search in the next mincut
+        // return Collections.singletonList(failedUpdate);
+        updateSuggestions.add(failedUpdate);
+
+        // add the edges to the worklist and continue search
+        // the are increased in the worklist step
+        edgeWorklist.addAll(cutEdges);
+        continue;
       }
 
       LOGGER.debug("Check Min-Cut Update");
@@ -491,6 +512,7 @@ public class RecommendationAlgorithm {
       UpdateSuggestion minCutUpdateSuggestion = new UpdateSuggestion();
       minCutUpdateSuggestion.setOrgGav(libToUpdateInDepGraph.toGav());
       minCutUpdateSuggestion.setSimpleUpdate(false);
+      minCutUpdateSuggestion.setNaiveUpdate(false);
       String updateGav =
           libToUpdateInDepGraph.getGroupId()
               + ":"
@@ -524,7 +546,9 @@ public class RecommendationAlgorithm {
         updateViolations = updateCheck.computeViolation(expandedCuttedNodes);
         minCutUpdateSuggestion.setViolations(updateViolations);
         minCutUpdateSuggestion.setStatus(UpdateSuggestion.SuggestionStatus.SUCCESS);
-        minCutUpdateSuggestion.setNrOfViolations(updateViolations.size());
+        minCutUpdateSuggestion.setNrOfViolations(
+            Math.toIntExact(
+                updateViolations.stream().filter(x -> x.getViolatedCalls().size() > 0).count()));
         minCutUpdateSuggestion.setNrOfViolatedCalls(
             updateViolations.stream()
                 .mapToInt(x -> x == null ? 0 : x.getViolatedCalls().size())

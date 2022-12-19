@@ -32,6 +32,7 @@ public class UpdateSuggestion {
   private List<Pair<String, String>> updateSteps = new ArrayList<>();
 
   @CsvBindByName private boolean isSimpleUpdate;
+  @CsvBindByName private boolean isNaiveUpdate;
   @CsvBindByName private SuggestionStatus status;
   @CsvBindByName private List<String> messages;
   // corresponds to the number of libraries with which we have violations
