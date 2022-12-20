@@ -435,7 +435,7 @@ public class RecommendationAlgorithm {
       } else {
         // it is NOT another min-cut; since the weight is higher
         LOGGER.trace("more weight then min-cut");
-        // FIXME ?? Reduce weight again?
+        // Reduce weight again
         unDirectedDepGraph.setEdgeWeight(curEdge, 1);
         continue;
       }
@@ -449,7 +449,6 @@ public class RecommendationAlgorithm {
         final GraphModel.Artifact edgeTarget = unDirectedDepGraph.getEdgeTarget(cutEdge);
         cuttedNodes.add(edgeTarget);
       }
-      // FIXME: fine until here
       // also expand the blossom Nodes in the un-updated nodes -- akka the source partition
       {
         Set<GraphModel.Artifact> expandedNodes = new HashSet<>();
