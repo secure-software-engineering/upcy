@@ -14,16 +14,6 @@ import de.upb.upcy.update.recommendation.compatabilityparser.SigTestIncompatibil
 import de.upb.upcy.update.recommendation.compatabilityparser.SootMethodIncompatibility;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
-import org.jgrapht.alg.shortestpath.BFSShortestPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import soot.SootMethod;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +24,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import soot.SootMethod;
 
 /**
  * Compute violations for a given update using the CompatibilityCheck
@@ -208,7 +207,7 @@ public class UpdateCheck {
       throws CompatabilityComputeException, EmptyCallGraphException {
     List<Violation> foundViolations = new ArrayList<>();
     for (MvnArtifactNode nodeInUpdateSubGraph : updateSubGraph.vertexSet()) {
-      // note that: if a dependency (fällt weg) becomes no longer necessary in the updatedSubgraph,
+      // note that: if a dependency vanishes (fällt weg) becomes no longer necessary in the updatedSubgraph,
       // then mvn includes the correct version
 
       // case 1. check if it has a match in the dep graph

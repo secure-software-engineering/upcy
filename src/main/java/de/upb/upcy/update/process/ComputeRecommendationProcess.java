@@ -131,9 +131,8 @@ public class ComputeRecommendationProcess {
                 Collections.emptyList(),
                 Collections.singletonList(json),
                 TIMEOUT_IN_SEC);
-        System.out.println(
-            "Done RecommendationModuleProcess with return value: " + retVal);
-      //TODO ??? Call process kill?
+        System.out.println("Done RecommendationModuleProcess with return value: " + retVal);
+        // TODO ??? Call process kill?
       } catch (InterruptedException e) {
         LOGGER.error("Timout for module");
       } catch (JsonProcessingException e) {
