@@ -105,3 +105,10 @@ If you prefer to create the file manually keep in mind that
  - sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
  - the sub-folders must contain the `_update-steps.csv` files
  - the example input is [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY). Note the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.
+
+
+## ToDos (Performance Improvements)
+- Split Cypher Query to speed up performance heavily
+  - MATCH query to find nodes that solve constraint
+  - 2nd query to get for the returned nodes the subgraph
+- Pooling of MongoDB Connections in Sig*Process, since they are separate processes the connection pool is not shared

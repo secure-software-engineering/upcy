@@ -409,7 +409,6 @@ public class RecommendationAlgorithm {
 
     boolean zeroViolationFound = false;
     double minCutWeight = Double.MAX_VALUE;
-    Collection<MinCut> minCuts = new ArrayList<>();
 
     while (!zeroViolationFound && !edgeWorklist.isEmpty()) {
       final GraphModel.Dependency curEdge = edgeWorklist.poll();
@@ -502,12 +501,12 @@ public class RecommendationAlgorithm {
         failedUpdate.setCutWeight((int) Math.round(minCutWeight));
         failedUpdate.setStatus(UpdateSuggestion.SuggestionStatus.NO_NEO4J_ENTRY);
         failedUpdate.setNrOfViolations(-1);
-        // FIXME: DO not return but search in the next mincut
+        // DO not return but search in the next min-cut
         // return Collections.singletonList(failedUpdate);
         updateSuggestions.add(failedUpdate);
 
         // add the edges to the worklist and continue search
-        // the are increased in the worklist step
+        // they are increased in the worklist step
         edgeWorklist.addAll(cutEdges);
         continue;
       }
@@ -540,9 +539,7 @@ public class RecommendationAlgorithm {
               true);
       Collection<Violation> updateViolations = null;
       try {
-        // FIXME: this is wrong -- the update nodes are the cut nodes
-        //  updateViolations =
-        //  updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
+        //  -- the update nodes are the cut nodes
         Set<GraphModel.Artifact> expandedCuttedNodes = new HashSet<>();
         for (GraphModel.Artifact cutNode : cuttedNodes) {
           {
@@ -583,6 +580,8 @@ public class RecommendationAlgorithm {
       // only the "root" nodes of the sink partition are actually updated- --> transformed to direct
       // dependencies
       {
+        // FIXME --  TODO noch nicht umgesetzt 21.12.2022 die cutted nodes im finalUpdateSubgraph
+        // werden auch geupdated
         DefaultDirectedGraph<MvnArtifactNode, DependencyRelation> finalUpdateSubGraph =
             updateSubGraph;
         final List<MvnArtifactNode> rootNodesOfSubGraph =
@@ -633,8 +632,6 @@ public class RecommendationAlgorithm {
         // add the edges to the worklist and continue search
         edgeWorklist.addAll(cutEdges);
       }
-      // reset the edge weight - to include if for the next min-(s,t)-cut
-      //  unDirectedDepGraph.setEdgeWeight(curEdge, edgeWeight - 1);
     }
     return updateSuggestions;
   }

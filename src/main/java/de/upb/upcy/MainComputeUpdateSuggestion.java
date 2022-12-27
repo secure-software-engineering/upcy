@@ -67,7 +67,9 @@ public class MainComputeUpdateSuggestion {
               f -> {
                 if (StringUtils.endsWith(f.getFileName().toString(), ".csv")
                     && !StringUtils.contains(f.getFileName().toString(), "graph-analysis")
-                    && !StringUtils.contains(f.getFileName().toString(), "_options-analysis.csv")) {
+                    && !StringUtils.contains(f.getFileName().toString(), "_options-analysis.csv")
+                    && !StringUtils.contains(
+                        f.getFileName().toString(), "_recommendation_results.csv")) {
                   // ignore graph analysis csv file
                   csvFiles.add(f);
                 }

@@ -207,7 +207,8 @@ public class UpdateCheck {
       throws CompatabilityComputeException, EmptyCallGraphException {
     List<Violation> foundViolations = new ArrayList<>();
     for (MvnArtifactNode nodeInUpdateSubGraph : updateSubGraph.vertexSet()) {
-      // note that: if a dependency vanishes (fällt weg) becomes no longer necessary in the updatedSubgraph,
+      // note that: if a dependency vanishes (fällt weg) becomes no longer necessary in the
+      // updatedSubgraph,
       // then mvn includes the correct version
 
       // case 1. check if it has a match in the dep graph
