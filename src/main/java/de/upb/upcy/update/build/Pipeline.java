@@ -1,11 +1,12 @@
 package de.upb.upcy.update.build;
 
 import de.upb.upcy.base.mvn.MavenInvokerProject;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Pipeline {
   private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);

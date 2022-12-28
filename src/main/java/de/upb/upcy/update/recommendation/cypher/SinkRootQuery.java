@@ -1,9 +1,11 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,18 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
 
   private static final int SUBGRAPH_LIMIT = 10;
-
-  public Map<GraphModel.Artifact, List<GraphModel.Artifact>> getSinkRoots() {
-    return sinkRoots;
-  }
-
   private static int MIN_PATH_LENGTH = 5;
 
   static {
@@ -45,7 +41,6 @@ public class SinkRootQuery implements CypherQuery {
   private final Set<GraphModel.Artifact> nodesBoundInThisQuery = new HashSet<>();
   private final String targetVersion;
   private final ShortestPathAlgorithm<GraphModel.Artifact, GraphModel.Dependency> shortestPath;
-
   public SinkRootQuery(
       Map<GraphModel.Artifact, List<GraphModel.Artifact>> sinkRoots,
       GraphModel.Artifact sharedNode,
@@ -59,6 +54,10 @@ public class SinkRootQuery implements CypherQuery {
     this.blossomGraphCreator = blossomGraphCreator;
     this.targetVersion = targetVersion;
     this.shortestPath = shortestPath;
+  }
+
+  public Map<GraphModel.Artifact, List<GraphModel.Artifact>> getSinkRoots() {
+    return sinkRoots;
   }
 
   public GraphModel.Artifact getSharedNode() {
@@ -86,9 +85,8 @@ public class SinkRootQuery implements CypherQuery {
         int pathLength = Integer.MAX_VALUE;
 
         if (artifacts != null && !artifacts.isEmpty()) {
-          // FIXME: breoken we have a blossom node, select one by random --> we choose the first
-          // rootNode = (GraphModel.Artifact) artifacts.toArray()[0];
-          // instead choose one that is an actual parent and that has the shortest path, choose one
+          // we have a blossom node, choose one that is an actual parent and that has the shortest
+          // path, choose one
           // that has the shortest path
           // find the shortest
           for (GraphModel.Artifact artifact : artifacts) {
@@ -207,7 +205,7 @@ public class SinkRootQuery implements CypherQuery {
       // create the constraints
       Map<String, String> pathNameAndExpression = new HashMap<>();
       for (GraphModel.Artifact rNode : rootNodesToCreateConstFor) {
-        // TODO: use the path as an initial length
+        // use the path as an initial length
         String pathName = Utils.getPathName(rNode, sharedNode);
         int pathLength = 3;
         final GraphPath<GraphModel.Artifact, GraphModel.Dependency> path =
