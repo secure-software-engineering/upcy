@@ -33,7 +33,6 @@ public class BlossomGraphCreator {
 
   public BlossomGraphCreator(
       Graph<GraphModel.Artifact, GraphModel.Dependency> depGraph, GraphModel.Artifact rootNode) {
-
     this.depGraph = depGraph;
     this.rootNode = rootNode;
     nodeToBlossom = new HashMap<>();
@@ -48,7 +47,7 @@ public class BlossomGraphCreator {
             .stream() // ignore the groupId of the project that is analyzed, e.g., multi module
             // projects
             .filter(x -> !StringUtils.equals(x.getGroupId(), rootNode.getGroupId()))
-            .collect(Collectors.groupingBy(GraphModel.Artifact::getGroupId));
+            .collect(Collectors.groupingBy(x -> getClearedGroupId(x.getGroupId())));
 
     // remove blossoms that only contain one node
     for (Iterator<Map.Entry<String, List<GraphModel.Artifact>>> iter =
@@ -155,15 +154,19 @@ public class BlossomGraphCreator {
   }
 
   public boolean isBlossomNode(String oneNodeGroupId, String secNodeGroupId) {
-    if (StringUtils.equals(oneNodeGroupId, secNodeGroupId)) {
+    if (StringUtils.equals(getClearedGroupId(oneNodeGroupId), getClearedGroupId(secNodeGroupId))) {
       LOGGER.trace("Skipped for blossom group");
       return true;
-    } // special case for springframework
-    if (StringUtils.startsWith(oneNodeGroupId, "org.springframework")
-        && StringUtils.startsWith(secNodeGroupId, "org.springframework")) {
-      LOGGER.trace("Skipped for blossom group");
-      return true;
+    } else {
+      return false;
     }
-    return false;
+  }
+
+  private static String getClearedGroupId(String nodeGroupId) {
+    // special case for springframework
+    if (StringUtils.startsWith(nodeGroupId, "org.springframework")) {
+      return "org.springframework";
+    }
+    return nodeGroupId;
   }
 }

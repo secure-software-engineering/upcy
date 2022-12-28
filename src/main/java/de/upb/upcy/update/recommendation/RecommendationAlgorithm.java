@@ -16,6 +16,7 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +46,9 @@ import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.nio.Attribute;
+import org.jgrapht.nio.DefaultAttribute;
+import org.jgrapht.nio.dot.DOTExporter;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.neo4j.driver.Driver;
 import org.slf4j.Logger;
@@ -290,14 +295,21 @@ public class RecommendationAlgorithm {
     }
 
     UpdateCheck updateCheck =
-        new UpdateCheck(shrinkedCG, depGraph, unUpdatedNodes, updateSubGraph, nodeMatchUtil);
+        new UpdateCheck(
+            shrinkedCG,
+            depGraph,
+            unUpdatedNodes,
+            updateSubGraph,
+            nodeMatchUtil,
+            blossomGraphCreator,
+            false);
 
     final Collection<Violation> simpleUpdateViolations;
 
     // store it as a suggestions
     UpdateSuggestion simpleUpdateSuggestion = new UpdateSuggestion();
     simpleUpdateSuggestion.setOrgGav(libToUpdateInDepGraph.toGav());
-    simpleUpdateSuggestion.setSimpleUpdate(true);
+
     String updateGav =
         libToUpdateInDepGraph.getGroupId()
             + ":"
@@ -306,6 +318,13 @@ public class RecommendationAlgorithm {
             + pickedVersion;
     simpleUpdateSuggestion.setTargetGav(targetGav);
     simpleUpdateSuggestion.setUpdateGav(updateGav);
+    simpleUpdateSuggestion.setSimpleUpdate(true);
+    // if target targetGav and updateGav differ we found a better solution than the naive update
+    if (!StringUtils.equals(targetGav, updateGav)) {
+      simpleUpdateSuggestion.setNaiveUpdate(false);
+    } else {
+      simpleUpdateSuggestion.setNaiveUpdate(true);
+    }
     ArrayList<Pair<String, String>> updateSteps = new ArrayList<>();
     updateSteps.add(Pair.of(libToUpdateInDepGraph.toGav(), updateGav));
     simpleUpdateSuggestion.setUpdateSteps(updateSteps);
@@ -313,7 +332,11 @@ public class RecommendationAlgorithm {
       simpleUpdateViolations =
           updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
       simpleUpdateSuggestion.setViolations(simpleUpdateViolations);
-      simpleUpdateSuggestion.setNrOfViolations(simpleUpdateViolations.size());
+      simpleUpdateSuggestion.setNrOfViolations(
+          Math.toIntExact(
+              simpleUpdateViolations.stream()
+                  .filter(x -> x.getViolatedCalls().size() > 0)
+                  .count()));
       simpleUpdateSuggestion.setNrOfViolatedCalls(
           simpleUpdateViolations.stream()
               .mapToInt(x -> x == null ? 0 : x.getViolatedCalls().size())
@@ -339,6 +362,17 @@ public class RecommendationAlgorithm {
 
     LOGGER.info("Compute Min-Cut solution");
     List<UpdateSuggestion> updateSuggestions = new ArrayList<>();
+    // export graph for debugging
+    final DOTExporter<GraphModel.Artifact, GraphModel.Dependency> objectObjectDOTExporter =
+        new DOTExporter<>();
+    objectObjectDOTExporter.setVertexAttributeProvider(
+        v -> {
+          Map<String, Attribute> map = new LinkedHashMap<>();
+          map.put("label", DefaultAttribute.createAttribute(v.toGav()));
+          return map;
+        });
+
+    objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
 
     final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
         new AsSubgraph<>(
@@ -375,7 +409,6 @@ public class RecommendationAlgorithm {
 
     boolean zeroViolationFound = false;
     double minCutWeight = Double.MAX_VALUE;
-    Collection<MinCut> minCuts = new ArrayList<>();
 
     while (!zeroViolationFound && !edgeWorklist.isEmpty()) {
       final GraphModel.Dependency curEdge = edgeWorklist.poll();
@@ -393,14 +426,15 @@ public class RecommendationAlgorithm {
 
       final double cutWeight =
           minimumSTCutAlgorithm.calculateMinCut(rootNode, libToUpdateForMincut);
-      if (cutWeight < minCutWeight) {
+      if (cutWeight <= minCutWeight) {
         // should only be possible in the first round
         minCutWeight = cutWeight;
         LOGGER.info("found min-cut with weight: {}", minCutWeight);
-      }
-      if (cutWeight > minCutWeight) {
+      } else {
         // it is NOT another min-cut; since the weight is higher
         LOGGER.trace("more weight then min-cut");
+        // Reduce weight again
+        unDirectedDepGraph.setEdgeWeight(curEdge, 1);
         continue;
       }
       final Set<GraphModel.Dependency> cutEdges = minimumSTCutAlgorithm.getCutEdges();
@@ -413,8 +447,7 @@ public class RecommendationAlgorithm {
         final GraphModel.Artifact edgeTarget = unDirectedDepGraph.getEdgeTarget(cutEdge);
         cuttedNodes.add(edgeTarget);
       }
-
-      // also expand the blossom Nodes in the unupdated nodes -- akka the source partion
+      // also expand the blossom Nodes in the un-updated nodes -- akka the source partition
       {
         Set<GraphModel.Artifact> expandedNodes = new HashSet<>();
         for (Iterator<GraphModel.Artifact> iter = sourcePartition.iterator(); iter.hasNext(); ) {
@@ -456,17 +489,26 @@ public class RecommendationAlgorithm {
           break;
         }
       }
-      if (updateSubGraph == null) {
+      // could not find solution
+      if (updateSubGraph == null || updateSubGraph.vertexSet().isEmpty()) {
         LOGGER.error("No solution found in NEO4j");
 
         UpdateSuggestion failedUpdate = new UpdateSuggestion();
+        failedUpdate.setNaiveUpdate(false);
         failedUpdate.setOrgGav(libToUpdateInDepGraph.toGav());
         failedUpdate.setTargetGav(targetGav);
         failedUpdate.setSimpleUpdate(false);
         failedUpdate.setCutWeight((int) Math.round(minCutWeight));
         failedUpdate.setStatus(UpdateSuggestion.SuggestionStatus.NO_NEO4J_ENTRY);
         failedUpdate.setNrOfViolations(-1);
-        return Collections.singletonList(failedUpdate);
+        // DO not return but search in the next min-cut
+        // return Collections.singletonList(failedUpdate);
+        updateSuggestions.add(failedUpdate);
+
+        // add the edges to the worklist and continue search
+        // they are increased in the worklist step
+        edgeWorklist.addAll(cutEdges);
+        continue;
       }
 
       LOGGER.debug("Check Min-Cut Update");
@@ -475,6 +517,7 @@ public class RecommendationAlgorithm {
       UpdateSuggestion minCutUpdateSuggestion = new UpdateSuggestion();
       minCutUpdateSuggestion.setOrgGav(libToUpdateInDepGraph.toGav());
       minCutUpdateSuggestion.setSimpleUpdate(false);
+      minCutUpdateSuggestion.setNaiveUpdate(false);
       String updateGav =
           libToUpdateInDepGraph.getGroupId()
               + ":"
@@ -486,14 +529,36 @@ public class RecommendationAlgorithm {
       minCutUpdateSuggestion.setCutWeight((int) Math.round(minCutWeight));
 
       UpdateCheck updateCheck =
-          new UpdateCheck(shrinkedCG, depGraph, sourcePartition, updateSubGraph, nodeMatchUtil);
+          new UpdateCheck(
+              shrinkedCG,
+              depGraph,
+              sourcePartition,
+              updateSubGraph,
+              nodeMatchUtil,
+              blossomGraphCreator,
+              true);
       Collection<Violation> updateViolations = null;
       try {
-        updateViolations =
-            updateCheck.computeViolation(Collections.singletonList(libToUpdateInDepGraph));
+        //  -- the update nodes are the cut nodes
+        Set<GraphModel.Artifact> expandedCuttedNodes = new HashSet<>();
+        for (GraphModel.Artifact cutNode : cuttedNodes) {
+          {
+            final Collection<GraphModel.Artifact> artifacts =
+                blossomGraphCreator.expandBlossomNode(cutNode);
+            if (artifacts != null) {
+              // is a blossom node
+              expandedCuttedNodes.addAll(artifacts);
+            } else {
+              expandedCuttedNodes.add(cutNode);
+            }
+          }
+        }
+        updateViolations = updateCheck.computeViolation(expandedCuttedNodes);
         minCutUpdateSuggestion.setViolations(updateViolations);
         minCutUpdateSuggestion.setStatus(UpdateSuggestion.SuggestionStatus.SUCCESS);
-        minCutUpdateSuggestion.setNrOfViolations(updateViolations.size());
+        minCutUpdateSuggestion.setNrOfViolations(
+            Math.toIntExact(
+                updateViolations.stream().filter(x -> x.getViolatedCalls().size() > 0).count()));
         minCutUpdateSuggestion.setNrOfViolatedCalls(
             updateViolations.stream()
                 .mapToInt(x -> x == null ? 0 : x.getViolatedCalls().size())
@@ -515,6 +580,8 @@ public class RecommendationAlgorithm {
       // only the "root" nodes of the sink partition are actually updated- --> transformed to direct
       // dependencies
       {
+        // FIXME --  TODO noch nicht umgesetzt 21.12.2022 die cutted nodes im finalUpdateSubgraph
+        // werden auch geupdated
         DefaultDirectedGraph<MvnArtifactNode, DependencyRelation> finalUpdateSubGraph =
             updateSubGraph;
         final List<MvnArtifactNode> rootNodesOfSubGraph =
@@ -547,12 +614,12 @@ public class RecommendationAlgorithm {
                         + ":"
                         + sinkRootNode.getVersion()));
           }
-          // add the blossom update steps
+          // TODO add the blossom update steps
         }
       }
 
       minCutUpdateSuggestion.setUpdateSteps(updateSteps);
-      // add last to avoid changes in set..
+      // add last to avoid changes in set ..
       updateSuggestions.add(minCutUpdateSuggestion);
 
       // check the weight of violations ...; if 0 (no violations) done; else compute further
@@ -565,8 +632,6 @@ public class RecommendationAlgorithm {
         // add the edges to the worklist and continue search
         edgeWorklist.addAll(cutEdges);
       }
-      // reset the edge weight - to include if for the next min-(s,t)-cut
-      //  unDirectedDepGraph.setEdgeWeight(curEdge, edgeWeight - 1);
     }
     return updateSuggestions;
   }

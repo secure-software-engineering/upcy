@@ -109,7 +109,7 @@ public class Main extends RabbitMQCollective {
       if (!todoProjectNames.isEmpty()) {
         // always takes preference
         if (!todoProjectNames.contains(projectNameFolder)) {
-          LOGGER.info("Not in todoList {} ", msg.getProjectNameFolder());
+          LOGGER.info("Not in todo list {} ", msg.getProjectNameFolder());
           continue;
         }
       } else if (doneProjectNames.contains(msg.getProjectNameFolder())) {
@@ -163,9 +163,9 @@ public class Main extends RabbitMQCollective {
         }
       }
     } catch (IOException exception) {
-      LOGGER.error("Failed to download project file", exception);
+      LOGGER.error("Failed to download todo list file", exception);
     }
-    LOGGER.info("Found #{} done projects", doneProjectNames.size());
+    LOGGER.info("Found #{} todo projects", todoProjectNames.size());
 
     final Path target = Paths.get("project_input_recommendation.zip");
     httpClient.getFileWebDav("project_input_recommendation.zip", target);

@@ -2,6 +2,7 @@ package de.upb.upcy.update.recommendation;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.opencsv.bean.CsvBindAndSplitByName;
 import com.opencsv.bean.CsvBindByName;
 import de.upb.upcy.update.recommendation.check.Violation;
 import java.util.ArrayList;
@@ -25,8 +26,13 @@ public class UpdateSuggestion {
   @CsvBindByName private String targetGav;
   @CsvBindByName private String updateGav;
   @CsvBindByName private Collection<Violation> violations;
-  @CsvBindByName private List<Pair<String, String>> updateSteps = new ArrayList<>();
+
+  @CsvBindByName
+  @CsvBindAndSplitByName(elementType = Pair.class, writeDelimiter = "/")
+  private List<Pair<String, String>> updateSteps = new ArrayList<>();
+
   @CsvBindByName private boolean isSimpleUpdate;
+  @CsvBindByName private boolean isNaiveUpdate;
   @CsvBindByName private SuggestionStatus status;
   @CsvBindByName private List<String> messages;
   // corresponds to the number of libraries with which we have violations

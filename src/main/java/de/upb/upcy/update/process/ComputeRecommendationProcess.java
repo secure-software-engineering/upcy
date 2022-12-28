@@ -34,11 +34,21 @@ public class ComputeRecommendationProcess {
   // Timeout 45min
   private static long TIMEOUT_IN_SEC = 2700L;
 
+  private static boolean RUN_IN_PROCESS = true;
+
   static {
     String timeOut = System.getenv("TIMEOUT");
     if (StringUtils.isNotBlank(timeOut)) {
       try {
         TIMEOUT_IN_SEC = Long.parseLong(timeOut);
+      } catch (NumberFormatException e) {
+        // nothing
+      }
+    }
+    String runInProcess = System.getenv("RUN_IN_PROCESS");
+    if (StringUtils.isNotBlank(runInProcess)) {
+      try {
+        RUN_IN_PROCESS = Boolean.parseBoolean(runInProcess);
       } catch (NumberFormatException e) {
         // nothing
       }
@@ -124,16 +134,23 @@ public class ComputeRecommendationProcess {
 
         // run the process and maybe kill it
         String json = OBJECT_MAPPER.writeValueAsString(inputParameter);
-        System.out.println("Start SigTestProcess for: " + module.getKey());
-        final int retVal =
-            JavaProcess.exec(
-                RecommendationModuleProcess.class,
-                Collections.emptyList(),
-                Collections.singletonList(json),
-                TIMEOUT_IN_SEC);
-        System.out.println(
-            "Done de.upb.thetis.eval.compatibility.SigTestProcess with return value: " + retVal);
-
+        if (RUN_IN_PROCESS) {
+          System.out.println(
+              "Start RecommendationModuleProcess in OWN process for: " + module.getKey());
+          final int retVal =
+              JavaProcess.exec(
+                  RecommendationModuleProcess.class,
+                  Collections.emptyList(),
+                  Collections.singletonList(json),
+                  TIMEOUT_IN_SEC);
+          System.out.println("Done RecommendationModuleProcess with return value: " + retVal);
+        } else {
+          System.out.println(
+              "Start RecommendationModuleProcess in SAME process for: " + module.getKey());
+          String[] args = new String[1];
+          args[0] = json;
+          RecommendationModuleProcess.main(args);
+        }
       } catch (InterruptedException e) {
         LOGGER.error("Timout for module");
       } catch (JsonProcessingException e) {

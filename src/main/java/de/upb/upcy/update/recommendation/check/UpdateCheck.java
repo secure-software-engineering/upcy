@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
+import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import de.upb.upcy.update.recommendation.CustomEdge;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
 import de.upb.upcy.update.recommendation.compatabilityparser.CompatabilityCheck;
@@ -54,13 +55,17 @@ public class UpdateCheck {
       shortestPathDepTree;
 
   private final Collection<GraphModel.Artifact> unUpdatedNodes;
+  private final BlossomGraphCreator blossomGraphCreator;
+  private final boolean treatBlossomNodesAsCompatible;
 
   public UpdateCheck(
       Graph<String, CustomEdge> shrinkedCG,
       Graph<GraphModel.Artifact, GraphModel.Dependency> dependencyGraph,
       Collection<GraphModel.Artifact> unUpdatedNodes,
       Graph<MvnArtifactNode, DependencyRelation> updateSubGraph,
-      NodeMatchUtil nodeMatchUtil) {
+      NodeMatchUtil nodeMatchUtil,
+      BlossomGraphCreator blossomGraphCreator,
+      boolean treatBlossomNodesAsCompatible) {
     this.shrinkedCG = shrinkedCG;
     this.dependencyGraph = dependencyGraph;
     this.updateSubGraph = updateSubGraph;
@@ -72,6 +77,9 @@ public class UpdateCheck {
             .orElseThrow(() -> new IllegalStateException("Could not find project root"));
     this.shortestPathDepTree = new BFSShortestPath<>(dependencyGraph);
     this.unUpdatedNodes = unUpdatedNodes;
+    this.blossomGraphCreator = blossomGraphCreator;
+    // if the blossom nodes are updated together, they are compatible
+    this.treatBlossomNodesAsCompatible = treatBlossomNodesAsCompatible;
   }
 
   public static SigTestMethod parseSigTestMethodSignature(final String qualifiedMethod) {
@@ -199,7 +207,8 @@ public class UpdateCheck {
       throws CompatabilityComputeException, EmptyCallGraphException {
     List<Violation> foundViolations = new ArrayList<>();
     for (MvnArtifactNode nodeInUpdateSubGraph : updateSubGraph.vertexSet()) {
-      // note that: if a dependency (fällt weg) becomes no longer necessary in the updatedSubgraph,
+      // note that: if a dependency vanishes (fällt weg) becomes no longer necessary in the
+      // updatedSubgraph,
       // then mvn includes the correct version
 
       // case 1. check if it has a match in the dep graph
@@ -306,7 +315,9 @@ public class UpdateCheck {
         // path length after transformation, over the initial updated node "node"
         final GraphPath<MvnArtifactNode, DependencyRelation> nextPath =
             updateSubGraphShortestPath.getPath(inNeo4jGraph.get(), newDepNode);
-        if (pathAfterTransformation != null
+        if (nextPath == null) {
+          continue;
+        } else if (pathAfterTransformation != null
             && nextPath.getLength() < pathAfterTransformation.getLength()) {
           pathAfterTransformation = nextPath;
         } else if (pathAfterTransformation == null) {
@@ -373,6 +384,14 @@ public class UpdateCheck {
     ArrayList<String> cgNodesNotUpdated = new ArrayList<>();
     for (GraphModel.Artifact dep : unUpdatedNodes) {
       final Optional<String> inCG = nodeMatchUtil.findInDepGraphByGav(dep, shrinkedCG, true);
+      // if we assume that all blossoms are updated
+      if (treatBlossomNodesAsCompatible) {
+        final boolean blossomNode = blossomGraphCreator.isBlossomNode(orgDepNode, dep);
+        if (blossomNode) {
+          // they are updated together, thus they are compatible
+          continue;
+        }
+      }
       inCG.ifPresent(cgNodesNotUpdated::add);
     }
 

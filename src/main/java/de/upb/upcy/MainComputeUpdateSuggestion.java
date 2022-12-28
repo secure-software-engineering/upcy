@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main class for running the evaluation experiments. Requires as an inout the folder containing the
+ * Main class for running the evaluation experiments. Requires as an input the folder containing the
  * projects and _update-step.csv files.
  *
  * @author adann
@@ -67,7 +67,9 @@ public class MainComputeUpdateSuggestion {
               f -> {
                 if (StringUtils.endsWith(f.getFileName().toString(), ".csv")
                     && !StringUtils.contains(f.getFileName().toString(), "graph-analysis")
-                    && !StringUtils.contains(f.getFileName().toString(), "_options-analysis.csv")) {
+                    && !StringUtils.contains(f.getFileName().toString(), "_options-analysis.csv")
+                    && !StringUtils.contains(
+                        f.getFileName().toString(), "_recommendation_results.csv")) {
                   // ignore graph analysis csv file
                   csvFiles.add(f);
                 }
