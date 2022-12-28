@@ -13,9 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +103,10 @@ public class Main extends RabbitMQCollective {
 
     final Set<Path> commitFiles = Utils.findCommitFiles(projectDir.toAbsolutePath().toString());
     int counter = 0;
-    for (Path commitFile : commitFiles) {
+    List<Path> commitFilesSorted = commitFiles.stream().collect(Collectors.toList());
+    Collections.sort(
+        commitFilesSorted, Comparator.comparing(o -> o.getParent().getFileName().toString()));
+    for (Path commitFile : commitFilesSorted) {
 
       Msg msg = new Msg();
       final String projectNameFolder = commitFile.getParent().getFileName().toString();
