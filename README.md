@@ -113,4 +113,3 @@ If you prefer to create the file manually keep in mind that
   - 2nd query to get for the returned nodes the subgraph
   - merge both graph (nodes based on gavc) to not loose any information (e.g., due to limit)
 - Pooling of MongoDB Connections in Sig*Process, since they are separate processes the connection pool is not shared
-- Avoid duplicate computation of min-cut (check if it already has been checked)
