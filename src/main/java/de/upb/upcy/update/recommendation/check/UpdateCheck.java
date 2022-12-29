@@ -14,16 +14,6 @@ import de.upb.upcy.update.recommendation.compatabilityparser.SigTestIncompatibil
 import de.upb.upcy.update.recommendation.compatabilityparser.SootMethodIncompatibility;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
-import org.jgrapht.alg.shortestpath.BFSShortestPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import soot.SootMethod;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,6 +24,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jgrapht.Graph;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import soot.SootMethod;
 
 /**
  * Compute violations for a given update using the CompatibilityCheck

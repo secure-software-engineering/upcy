@@ -411,6 +411,8 @@ public class RecommendationAlgorithm {
     boolean zeroViolationFound = false;
     double minCutWeight = Double.MAX_VALUE;
 
+    HashSet<MinCut> computedMinCuts = new HashSet<>();
+
     while (!zeroViolationFound && !edgeWorklist.isEmpty()) {
       final GraphModel.Dependency curEdge = edgeWorklist.poll();
 
@@ -442,6 +444,13 @@ public class RecommendationAlgorithm {
 
       final Set<GraphModel.Artifact> sinkPartition = minimumSTCutAlgorithm.getSinkPartition();
       final Set<GraphModel.Artifact> sourcePartition = minimumSTCutAlgorithm.getSourcePartition();
+      // store the min-cut, and check if we computed a duplicate
+      MinCut minCut = new MinCut(cutWeight, cutEdges, sinkPartition, sourcePartition);
+      if (!computedMinCuts.add(minCut)) {
+        LOGGER.error("Already computed min-cut");
+        continue;
+      }
+
       // get the nodes in the sink -- that are the tgt nodes of the cutted edges
       List<GraphModel.Artifact> cuttedNodes = new ArrayList<>();
       for (GraphModel.Dependency cutEdge : cutEdges) {

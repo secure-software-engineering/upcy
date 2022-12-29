@@ -3,13 +3,6 @@ package de.upb.upcy.update.recommendation.cypher;
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
 import de.upb.upcy.update.recommendation.NodeMatchUtil;
-import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +15,12 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Class to construct cypher queries for finding a solution to the min-(s,t)-cut */
 public class CypherQueryCreator {

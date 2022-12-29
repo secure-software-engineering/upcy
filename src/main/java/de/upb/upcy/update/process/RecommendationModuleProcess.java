@@ -10,15 +10,14 @@ import de.upb.upcy.MainComputeUpdateSuggestion;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.build.Result;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
-import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class RecommendationModuleProcess {
   private static final Logger LOGGER = LoggerFactory.getLogger(RecommendationModuleProcess.class);
