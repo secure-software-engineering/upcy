@@ -601,14 +601,26 @@ public class RecommendationAlgorithm {
                 .collect(Collectors.toList());
         // add the cutted nodes to the list
         List<MvnArtifactNode> cuttedMavenNodes = new ArrayList<>();
-        // find the corresponding nodes for the cutted nodes, and check those for updates, too
+        List<GraphModel.Artifact> expandedCuttedNodes = new ArrayList<>();
+        // expand the cutted nodes, so get all the blossoms
         for (GraphModel.Artifact artifact : cuttedNodes) {
+          final Collection<GraphModel.Artifact> artifacts =
+              blossomGraphCreator.expandBlossomNode(artifact);
+          if (artifacts != null && !artifacts.isEmpty()) {
+            expandedCuttedNodes.addAll(artifacts);
+          } else {
+            expandedCuttedNodes.add(artifact);
+          }
+        }
+        // find the corresponding nodes for the cutted nodes, and check those for updates, too
+        for (GraphModel.Artifact artifact : expandedCuttedNodes) {
           final Optional<MvnArtifactNode> match =
               nodeMatchUtil.findInNeo4jGraph(artifact, finalUpdateSubGraph, false);
           if (match.isPresent()) {
             cuttedMavenNodes.add(match.get());
           }
         }
+
         List<MvnArtifactNode> nodesToCheck = new ArrayList<>();
         nodesToCheck.addAll(rootNodesOfSubGraph);
         nodesToCheck.addAll(cuttedMavenNodes);
