@@ -1,9 +1,11 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,9 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
 
@@ -174,10 +175,8 @@ public class SinkRootQuery implements CypherQuery {
         final Collection<GraphModel.Artifact> artifacts =
             blossomGraphCreator.expandBlossomNode(rNode);
         if (artifacts != null && !artifacts.isEmpty()) {
-          // we have a blossom node, select one by random --> we choose the first //FIXME: this
-          // breaks
-          // BROKEN rNode = (GraphModel.Artifact) artifacts.toArray()[0];
-          // instead choose one that is an actual parent and that has the shortest path, choose one
+          // we have a blossom node, choose one that is an actual parent and that has the shortest
+          // path, choose one
           // that has the shortest path
           // find the shortest
           int pathLength = Integer.MAX_VALUE;
@@ -346,7 +345,7 @@ public class SinkRootQuery implements CypherQuery {
       List<String> importStatements = new ArrayList<>();
       List<String> finalNames = new ArrayList<>();
 
-      // FIXME: use WITH and LIMIT 10 -- to improve performance here
+      // use WITH and LIMIT 10 -- to improve performance here
       for (GraphModel.Artifact root : roots) {
 
         if (boundNodes.contains(root)) {

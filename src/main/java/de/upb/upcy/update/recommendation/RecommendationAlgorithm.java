@@ -16,6 +16,24 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
+import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
+import org.jgrapht.graph.AsSubgraph;
+import org.jgrapht.graph.AsUndirectedGraph;
+import org.jgrapht.graph.AsWeightedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.nio.Attribute;
+import org.jgrapht.nio.DefaultAttribute;
+import org.jgrapht.nio.dot.DOTExporter;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.neo4j.driver.Driver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,23 +54,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
-import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
-import org.jgrapht.graph.AsSubgraph;
-import org.jgrapht.graph.AsUndirectedGraph;
-import org.jgrapht.graph.AsWeightedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.DefaultAttribute;
-import org.jgrapht.nio.dot.DOTExporter;
-import org.jgrapht.traverse.BreadthFirstIterator;
-import org.neo4j.driver.Driver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Compute update recommendations and their incompatibilities. 1. compute the naive update 2. find a
