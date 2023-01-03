@@ -1,9 +1,8 @@
 package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Util class to create consistent variable names for nodes, relations, and paths in Cypher queries

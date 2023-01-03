@@ -1,11 +1,6 @@
 package de.upb.upcy.update.recommendation.compatabilityparser;
 
 import de.upb.upcy.base.sigtest.db.model.sootdiff.CallGraphCheckDoc;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.alg.util.Triple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +8,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.alg.util.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Parser {
   private static final Logger LOGGER = LoggerFactory.getLogger(Parser.class);

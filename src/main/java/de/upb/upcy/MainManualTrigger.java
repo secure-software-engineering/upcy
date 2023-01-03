@@ -1,18 +1,15 @@
 package de.upb.upcy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * @author adann
- */
+/** @author adann */
 public class MainManualTrigger {
   private static final Logger LOGGER = LoggerFactory.getLogger(MainManualTrigger.class);
 
