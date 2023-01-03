@@ -6,7 +6,7 @@
 
     <groupId>de.upb</groupId>
     <artifactId>upcy</artifactId>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.6-SNAPSHOT</version>
 
     <properties>
         <docker.image.prefix>ghcr.io/anddann/</docker.image.prefix>
