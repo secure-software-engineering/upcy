@@ -3,6 +3,12 @@ package de.upb.upcy.update.recommendation;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +22,6 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * (Re-)Find libraries in the different graph representations: dependency graph, call graph, update
@@ -184,6 +185,26 @@ public class NodeMatchUtil {
               final boolean equals = StringUtils.equals(x.getGroup(), depToCheck.getGroupId());
               final boolean equals1 =
                   StringUtils.equals(x.getArtifact(), depToCheck.getArtifactId());
+              final boolean equals2 = StringUtils.equals(x.getVersion(), depToCheck.getVersion());
+              if (withVersion) {
+                return equals & equals1 & equals2;
+              } else {
+                return equals & equals1;
+              }
+            })
+        .findFirst();
+  }
+
+  public Optional<MvnArtifactNode> findLooseInNeo4jGraph(
+      GraphModel.Artifact depToCheck,
+      Graph<MvnArtifactNode, DependencyRelation> in,
+      boolean withVersion) {
+    return in.vertexSet().stream()
+        .filter(
+            x -> {
+              final boolean equals = StringUtils.contains(x.getGroup(), depToCheck.getGroupId());
+              final boolean equals1 =
+                  StringUtils.contains(x.getArtifact(), depToCheck.getArtifactId());
               final boolean equals2 = StringUtils.equals(x.getVersion(), depToCheck.getVersion());
               if (withVersion) {
                 return equals & equals1 & equals2;
