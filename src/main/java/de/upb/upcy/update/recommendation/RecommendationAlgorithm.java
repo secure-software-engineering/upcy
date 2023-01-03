@@ -590,15 +590,29 @@ public class RecommendationAlgorithm {
       // only the "root" nodes of the sink partition are actually updated- --> transformed to direct
       // dependencies
       {
-        // TODO --  noch nicht umgesetzt 21.12.2022 die cutted nodes im finalUpdateSubgraph
-        // werden auch geupdated
+        // FIX in version 1.6 -- output for blossom and cutted nodes
+        // TODO -- noch nicht umgesetzt 21.12.2022 die cutted nodes im finalUpdateSubgraph
+        // werden auch ge-updated
         DefaultDirectedGraph<MvnArtifactNode, DependencyRelation> finalUpdateSubGraph =
             updateSubGraph;
         final List<MvnArtifactNode> rootNodesOfSubGraph =
             updateSubGraph.vertexSet().stream()
                 .filter(x -> finalUpdateSubGraph.inDegreeOf(x) == 0)
                 .collect(Collectors.toList());
-        for (MvnArtifactNode sinkRootNode : rootNodesOfSubGraph) {
+        // add the cutted nodes to the list
+        List<MvnArtifactNode> cuttedMavenNodes = new ArrayList<>();
+        // find the corresponding nodes for the cutted nodes, and check those for updates, too
+        for (GraphModel.Artifact artifact : cuttedNodes) {
+          final Optional<MvnArtifactNode> match =
+              nodeMatchUtil.findInNeo4jGraph(artifact, finalUpdateSubGraph, false);
+          if (match.isPresent()) {
+            cuttedMavenNodes.add(match.get());
+          }
+        }
+        List<MvnArtifactNode> nodesToCheck = new ArrayList<>();
+        nodesToCheck.addAll(rootNodesOfSubGraph);
+        nodesToCheck.addAll(cuttedMavenNodes);
+        for (MvnArtifactNode sinkRootNode : nodesToCheck) {
 
           // the gav in the update subgraph
           final Optional<GraphModel.Artifact> first =
