@@ -584,7 +584,8 @@ public class RecommendationAlgorithm {
         minCutUpdateSuggestion.setNrOfViolatedCalls(-1);
       }
 
-      ArrayList<Pair<String, String>> updateSteps = new ArrayList<>();
+      // avoid duplicate update steps
+      Set<Pair<String, String>> updateSteps = new HashSet<>();
 
       // for each updated lib compute the update step
       // only the "root" nodes of the sink partition are actually updated- --> transformed to direct
@@ -605,16 +606,10 @@ public class RecommendationAlgorithm {
         for (GraphModel.Artifact artifact : cuttedNodes) {
           final Collection<GraphModel.Artifact> artifacts =
               blossomGraphCreator.expandBlossomNode(artifact);
-          // avoid duplicate outputs
           if (artifacts != null && !artifacts.isEmpty()) {
-            expandedCuttedNodes.addAll(
-                artifacts.stream()
-                    .filter(x -> !rootNodesOfSubGraph.contains(x))
-                    .collect(Collectors.toList()));
+            expandedCuttedNodes.addAll(artifacts);
           } else {
-            if (!rootNodesOfSubGraph.contains(artifact)) {
-              expandedCuttedNodes.add(artifact);
-            }
+            expandedCuttedNodes.add(artifact);
           }
         }
 
@@ -675,7 +670,7 @@ public class RecommendationAlgorithm {
         }
       }
 
-      minCutUpdateSuggestion.setUpdateSteps(updateSteps);
+      minCutUpdateSuggestion.setUpdateSteps(new ArrayList<>(updateSteps));
       // add last to avoid changes in set ..
       updateSuggestions.add(minCutUpdateSuggestion);
 
