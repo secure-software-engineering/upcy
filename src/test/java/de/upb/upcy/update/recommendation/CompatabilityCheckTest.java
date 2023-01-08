@@ -1,11 +1,19 @@
 package de.upb.upcy.update.recommendation;
 
+import static org.junit.Assert.*;
+
 import de.upb.upcy.base.commons.CompressionUtils;
 import de.upb.upcy.update.recommendation.check.UpdateCheck;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
 import de.upb.upcy.update.recommendation.compatabilityparser.Parser;
 import de.upb.upcy.update.recommendation.compatabilityparser.SigTestIncompatibility;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -14,15 +22,6 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.Type;
 import soot.VoidType;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 @Ignore // only works with real db currently
 public class CompatabilityCheckTest {

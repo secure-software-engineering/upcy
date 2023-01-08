@@ -1,10 +1,9 @@
 package de.upb.upcy.update.recommendation.check;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import soot.SootMethod;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Data

@@ -1,9 +1,8 @@
 package de.upb.upcy.update.recommendation.compatabilityparser;
 
+import java.util.List;
 import lombok.Data;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 @Data
 public class SigTestIncompatibility implements Incompatibility {
