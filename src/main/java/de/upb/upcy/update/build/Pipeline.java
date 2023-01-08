@@ -1,11 +1,12 @@
 package de.upb.upcy.update.build;
 
 import de.upb.upcy.base.mvn.MavenInvokerProject;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Pipeline {
   private static final Logger LOGGER = LoggerFactory.getLogger(Pipeline.class);
@@ -42,11 +43,12 @@ public class Pipeline {
       Triple<Integer, String, String> out = mavenInvokerProject.compile();
       if (out.getLeft() == 0) {
         // nothing to do
+        LOGGER.trace("Built project without error");
       } else {
-        LOGGER.error("Building project failed");
+        LOGGER.error("Built project failed");
       }
     } catch (MavenInvokerProject.BuildToolException e) {
-      LOGGER.error("Building project failed", e);
+      LOGGER.error("Built project failed", e);
       return;
     }
   }

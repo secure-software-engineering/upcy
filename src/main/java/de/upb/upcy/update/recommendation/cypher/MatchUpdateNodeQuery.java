@@ -1,6 +1,7 @@
 package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
+
 import java.util.Collection;
 import java.util.Collections;
 

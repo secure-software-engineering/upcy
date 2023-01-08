@@ -5,15 +5,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.opencsv.bean.CsvBindAndSplitByName;
 import com.opencsv.bean.CsvBindByName;
 import de.upb.upcy.update.recommendation.check.Violation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 
-/** @author adann */
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * @author adann
+ */
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data

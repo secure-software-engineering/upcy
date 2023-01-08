@@ -1,9 +1,11 @@
 package de.upb.upcy.update.recommendation.cypher;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.update.recommendation.BlossomGraphCreator;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,9 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+
+import static java.util.stream.Collectors.groupingBy;
 
 public class SinkRootQuery implements CypherQuery {
 
@@ -119,7 +120,7 @@ public class SinkRootQuery implements CypherQuery {
                 Utils.getNodeNameForCypher(libToUpdateInDepGraph),
                 Math.max(pathLength, MIN_PATH_LENGTH));
 
-        String whereExpression = "";
+        String whereExpression;
         if (boundNodes.contains(rootNode)) {
           // leave it, no where-expr necessary
           whereExpression = "";
@@ -135,18 +136,17 @@ public class SinkRootQuery implements CypherQuery {
           nodesBoundInThisQuery.add(sharedNode);
         }
 
-        return String.format(
-            "CALL{ "
-                + "WITH "
-                + Utils.getNodeNameForCypher(sharedNode)
-                + "\n"
-                + format
-                + "\n"
-                + ((StringUtils.isNotBlank(whereExpression)) ? " WHERE " + whereExpression : "")
-                + "\n"
-                + " RETURN "
-                + pathName
-                + " LIMIT 1 } \n");
+        return "CALL{ "
+            + "WITH "
+            + Utils.getNodeNameForCypher(sharedNode)
+            + "\n"
+            + format
+            + "\n"
+            + ((StringUtils.isNotBlank(whereExpression)) ? " WHERE " + whereExpression : "")
+            + "\n"
+            + " RETURN "
+            + pathName
+            + " LIMIT 1 } \n";
 
       } else {
         return "";
@@ -257,10 +257,7 @@ public class SinkRootQuery implements CypherQuery {
           String whereExpression =
               String.format(
                   "%1$s.group=\"%2$s\" AND  %1$s.artifact=\"%3$s\" ",
-                  Utils.getNodeNameForCypher(rNode),
-                  rNode.getGroupId(),
-                  rNode.getArtifactId(),
-                  rNode.getVersion());
+                  Utils.getNodeNameForCypher(rNode), rNode.getGroupId(), rNode.getArtifactId());
 
           if (blossomGraphCreator.isBlossomNode(libToUpdateInDepGraph, rNode)) {
             // use the same targetVersion
@@ -291,31 +288,28 @@ public class SinkRootQuery implements CypherQuery {
               .map(Utils::getNodeNameForCypher)
               .collect(Collectors.toSet()));
 
-      return String.format(
-          "CALL{ "
-              + ((importStatements.size() > 0)
-                  ? ("WITH " + String.join(", ", importStatements))
-                  : "")
-              + " MATCH "
-              + String.join(", ", pathNameAndExpression.values())
-              + "\n"
-              + ((nodeWhereConditions.size() > 0)
-                  ? " WHERE " + String.join(" AND ", nodeWhereConditions)
-                  : "")
-              + "\n"
-              + " "
-              + "WITH DISTINCT "
-              + sharedNodeName
-              + ", " // the shared nodeName is above, thus remove here
-              + String.join(
-                  " , ",
-                  finalWithClause.stream()
-                      .filter(x -> !StringUtils.equals(x, sharedNodeName))
-                      .collect(Collectors.toList()))
-              + "\n "
-              + " RETURN "
-              + String.join(", ", finalWithClause)
-              + " LIMIT 1 } \n");
+      return "CALL{ "
+          + ((importStatements.size() > 0) ? ("WITH " + String.join(", ", importStatements)) : "")
+          + " MATCH "
+          + String.join(", ", pathNameAndExpression.values())
+          + "\n"
+          + ((nodeWhereConditions.size() > 0)
+              ? " WHERE " + String.join(" AND ", nodeWhereConditions)
+              : "")
+          + "\n"
+          + " "
+          + "WITH DISTINCT "
+          + sharedNodeName
+          + ", " // the shared nodeName is above, thus remove here
+          + String.join(
+              " , ",
+              finalWithClause.stream()
+                  .filter(x -> !StringUtils.equals(x, sharedNodeName))
+                  .collect(Collectors.toList()))
+          + "\n "
+          + " RETURN "
+          + String.join(", ", finalWithClause)
+          + " LIMIT 1 } \n";
     } else {
       return "";
     }
@@ -332,14 +326,7 @@ public class SinkRootQuery implements CypherQuery {
         this.nodesBoundInThisQuery.stream() // no subgraph for the shared node required
             .filter(x -> x != this.sharedNode)
             .collect(Collectors.toSet());
-    /*    for (GraphModel.Artifact root : roots) {
-      ret =
-          ret
-              + "\n"
-              + String.format(
-                  "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
-                  Utils.getPathName(root, null), Utils.getNodeNameForCypher(root));
-    }*/
+
     if (!roots.isEmpty()) {
       List<String> importStatements = new ArrayList<>();
       List<String> finalNames = new ArrayList<>();
@@ -361,21 +348,17 @@ public class SinkRootQuery implements CypherQuery {
                     "MATCH %1$s = ((%2$s:MvnArtifact)-[:DEPENDS_ON*0..3 {scope:\"COMPILE\"}]->(:MvnArtifact))",
                     pathName, nodeNameForCypher);
       }
-      String format =
-          "CALL{ "
-              + ((importStatements.size() > 0)
-                  ? ("WITH " + String.join(", ", importStatements))
-                  : "")
-              + "\n"
-              + ret
-              + "\n"
-              + " RETURN "
-              + String.join(", ", finalNames)
-              + " LIMIT "
-              + SUBGRAPH_LIMIT
-              + "}";
 
-      return format;
+      return "CALL{ "
+          + ((importStatements.size() > 0) ? ("WITH " + String.join(", ", importStatements)) : "")
+          + "\n"
+          + ret
+          + "\n"
+          + " RETURN "
+          + String.join(", ", finalNames)
+          + " LIMIT "
+          + SUBGRAPH_LIMIT
+          + "}";
     }
     return ret;
   }

@@ -1,7 +1,5 @@
 package de.upb.upcy;
 
-import static java.util.stream.Collectors.groupingBy;
-
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -15,6 +13,12 @@ import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.build.Result;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,11 +38,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Main class for running the evaluation experiments. Requires as an input the folder containing the
@@ -163,7 +164,7 @@ public class MainComputeUpdateSuggestion {
         String.format(
             "https://github.com/%s/%s.git",
             s[0], String.join("_", Arrays.asList(s).subList(1, s.length)));
-    String commit = Files.lines(commitFile).findFirst().get().trim();
+    String commit = Files.lines(commitFile).findFirst().orElse("").trim();
 
     // run the build pipeline on the projects (for generating the call graph)
     final Path checkoutRepoFolder = Utils.checkOutRepo(repoUrl, commit);
