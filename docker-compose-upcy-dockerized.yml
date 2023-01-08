@@ -18,7 +18,7 @@ services:
   #creates the work messages
   producer:
     restart: always
-    image: ghcr.io/anddann/upcy:1.3-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.6-SNAPSHOT
     depends_on:
       - rabbitmq
       - fileServer
@@ -39,7 +39,7 @@ services:
 
   worker:
     restart: always
-    image: ghcr.io/anddann/upcy:1.3-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.6-SNAPSHOT
     deploy:
       replicas: 2
       mode: replicated
