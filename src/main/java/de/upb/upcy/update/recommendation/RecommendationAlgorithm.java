@@ -16,6 +16,24 @@ import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.jgrapht.Graph;
+import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
+import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
+import org.jgrapht.graph.AsSubgraph;
+import org.jgrapht.graph.AsUndirectedGraph;
+import org.jgrapht.graph.AsWeightedGraph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.nio.Attribute;
+import org.jgrapht.nio.DefaultAttribute;
+import org.jgrapht.nio.dot.DOTExporter;
+import org.jgrapht.traverse.BreadthFirstIterator;
+import org.neo4j.driver.Driver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,23 +54,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.jgrapht.Graph;
-import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
-import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
-import org.jgrapht.graph.AsSubgraph;
-import org.jgrapht.graph.AsUndirectedGraph;
-import org.jgrapht.graph.AsWeightedGraph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.DefaultAttribute;
-import org.jgrapht.nio.dot.DOTExporter;
-import org.jgrapht.traverse.BreadthFirstIterator;
-import org.neo4j.driver.Driver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Compute update recommendations and their incompatibilities. 1. compute the naive update 2. find a
@@ -320,11 +321,7 @@ public class RecommendationAlgorithm {
     simpleUpdateSuggestion.setUpdateGav(updateGav);
     simpleUpdateSuggestion.setSimpleUpdate(true);
     // if target targetGav and updateGav differ we found a better solution than the naive update
-    if (!StringUtils.equals(targetGav, updateGav)) {
-      simpleUpdateSuggestion.setNaiveUpdate(false);
-    } else {
-      simpleUpdateSuggestion.setNaiveUpdate(true);
-    }
+    simpleUpdateSuggestion.setNaiveUpdate(StringUtils.equals(targetGav, updateGav));
     ArrayList<Pair<String, String>> updateSteps = new ArrayList<>();
     updateSteps.add(Pair.of(libToUpdateInDepGraph.toGav(), updateGav));
     simpleUpdateSuggestion.setUpdateSteps(updateSteps);
@@ -410,6 +407,8 @@ public class RecommendationAlgorithm {
     boolean zeroViolationFound = false;
     double minCutWeight = Double.MAX_VALUE;
 
+    HashSet<MinCut> computedMinCuts = new HashSet<>();
+
     while (!zeroViolationFound && !edgeWorklist.isEmpty()) {
       final GraphModel.Dependency curEdge = edgeWorklist.poll();
 
@@ -441,6 +440,13 @@ public class RecommendationAlgorithm {
 
       final Set<GraphModel.Artifact> sinkPartition = minimumSTCutAlgorithm.getSinkPartition();
       final Set<GraphModel.Artifact> sourcePartition = minimumSTCutAlgorithm.getSourcePartition();
+      // store the min-cut, and check if we computed a duplicate
+      MinCut minCut = new MinCut(cutWeight, cutEdges, sinkPartition, sourcePartition);
+      if (!computedMinCuts.add(minCut)) {
+        LOGGER.error("Already computed min-cut");
+        continue;
+      }
+
       // get the nodes in the sink -- that are the tgt nodes of the cutted edges
       List<GraphModel.Artifact> cuttedNodes = new ArrayList<>();
       for (GraphModel.Dependency cutEdge : cutEdges) {
@@ -574,20 +580,33 @@ public class RecommendationAlgorithm {
         minCutUpdateSuggestion.setNrOfViolatedCalls(-1);
       }
 
-      ArrayList<Pair<String, String>> updateSteps = new ArrayList<>();
+      // avoid duplicate update steps
+      Set<Pair<String, String>> updateSteps = new HashSet<>();
 
       // for each updated lib compute the update step
       // only the "root" nodes of the sink partition are actually updated- --> transformed to direct
       // dependencies
       {
-        // FIXME --  TODO noch nicht umgesetzt 21.12.2022 die cutted nodes im finalUpdateSubgraph
-        // werden auch geupdated
+        // FIX in version 1.6 -- output for blossom and cutted nodes
         DefaultDirectedGraph<MvnArtifactNode, DependencyRelation> finalUpdateSubGraph =
             updateSubGraph;
         final List<MvnArtifactNode> rootNodesOfSubGraph =
             updateSubGraph.vertexSet().stream()
                 .filter(x -> finalUpdateSubGraph.inDegreeOf(x) == 0)
                 .collect(Collectors.toList());
+        // add the cutted nodes to the list
+        Set<GraphModel.Artifact> expandedCuttedNodes = new HashSet<>();
+        // expand the cutted nodes, so get all the blossoms
+        for (GraphModel.Artifact artifact : cuttedNodes) {
+          final Collection<GraphModel.Artifact> artifacts =
+              blossomGraphCreator.expandBlossomNode(artifact);
+          if (artifacts != null && !artifacts.isEmpty()) {
+            expandedCuttedNodes.addAll(artifacts);
+          } else {
+            expandedCuttedNodes.add(artifact);
+          }
+        }
+
         for (MvnArtifactNode sinkRootNode : rootNodesOfSubGraph) {
 
           // the gav in the update subgraph
@@ -616,9 +635,36 @@ public class RecommendationAlgorithm {
           }
           // TODO add the blossom update steps
         }
+
+        // find the corresponding nodes for the cutted nodes, and check those for updates, too
+        for (GraphModel.Artifact artifact : expandedCuttedNodes) {
+          Optional<MvnArtifactNode> first =
+              nodeMatchUtil.findInNeo4jGraph(artifact, finalUpdateSubGraph, false);
+
+          if (!first.isPresent()) {
+            // for deps migrated to other group or artifact
+            first = nodeMatchUtil.findLooseInNeo4jGraph(artifact, finalUpdateSubGraph, false);
+          }
+          if (first.isPresent()) {
+            String tGav =
+                artifact.getGroupId()
+                    + ":"
+                    + artifact.getArtifactId()
+                    + ":"
+                    + artifact.getVersion();
+            updateSteps.add(
+                Pair.of(
+                    tGav,
+                    first.get().getGroup()
+                        + ":"
+                        + first.get().getArtifact()
+                        + ":"
+                        + first.get().getVersion()));
+          }
+        }
       }
 
-      minCutUpdateSuggestion.setUpdateSteps(updateSteps);
+      minCutUpdateSuggestion.setUpdateSteps(new ArrayList<>(updateSteps));
       // add last to avoid changes in set ..
       updateSuggestions.add(minCutUpdateSuggestion);
 

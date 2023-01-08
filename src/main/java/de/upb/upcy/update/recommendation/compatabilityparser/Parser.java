@@ -1,17 +1,17 @@
 package de.upb.upcy.update.recommendation.compatabilityparser;
 
 import de.upb.upcy.base.sigtest.db.model.sootdiff.CallGraphCheckDoc;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.jgrapht.alg.util.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Parser {
   private static final Logger LOGGER = LoggerFactory.getLogger(Parser.class);
@@ -64,9 +64,9 @@ public class Parser {
                 || StringUtils.equals(type, "constructor")) {
               currentMethods.add(qualifier);
             } else if (StringUtils.equals(type, "CLASS")) {
-              currentMethods = Collections.emptyList();
-              currentFields = Collections.emptyList();
-              currentInterface = Collections.emptyList();
+              currentMethods = new ArrayList<>();
+              currentFields = new ArrayList<>();
+              currentInterface = new ArrayList<>();
               keepClass = true;
             } else if (StringUtils.equals(type, "interface")) {
               currentInterface.add(qualifier);
@@ -86,6 +86,7 @@ public class Parser {
             && !keepClass) {
           // we have a dummy class with only warnings or annotations, we don't count that as
           // incompatibilities
+          LOGGER.trace("dummy class, skipping");
         } else {
           final SigTestIncompatibility incompatibility =
               new SigTestIncompatibility(

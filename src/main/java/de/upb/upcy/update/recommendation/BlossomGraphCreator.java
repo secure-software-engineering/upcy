@@ -1,6 +1,12 @@
 package de.upb.upcy.update.recommendation;
 
 import de.upb.upcy.base.graph.GraphModel;
+import org.apache.commons.lang3.StringUtils;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.AbstractBaseGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,11 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jgrapht.Graph;
-import org.jgrapht.graph.AbstractBaseGraph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class for creating and expanding blossoms in the dependency graph
@@ -39,11 +40,20 @@ public class BlossomGraphCreator {
     blossomToNode = new HashMap<>();
   }
 
+  private static String getClearedGroupId(String nodeGroupId) {
+    // special case for springframework
+    if (StringUtils.startsWith(nodeGroupId, "org.springframework")) {
+      return "org.springframework";
+    }
+    return nodeGroupId;
+  }
+
   private Map<String, List<GraphModel.Artifact>> getBlossomNodes(
       Graph<GraphModel.Artifact, GraphModel.Dependency> depGraph, GraphModel.Artifact rootNode) {
     // compute blossoms
     final Map<String, List<GraphModel.Artifact>> blossomNodes =
-        depGraph.vertexSet()
+        depGraph
+            .vertexSet()
             .stream() // ignore the groupId of the project that is analyzed, e.g., multi module
             // projects
             .filter(x -> !StringUtils.equals(x.getGroupId(), rootNode.getGroupId()))
@@ -160,13 +170,5 @@ public class BlossomGraphCreator {
     } else {
       return false;
     }
-  }
-
-  private static String getClearedGroupId(String nodeGroupId) {
-    // special case for springframework
-    if (StringUtils.startsWith(nodeGroupId, "org.springframework")) {
-      return "org.springframework";
-    }
-    return nodeGroupId;
   }
 }

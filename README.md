@@ -108,7 +108,8 @@ If you prefer to create the file manually keep in mind that
 
 
 ## ToDos (Performance Improvements)
-- Split Cypher Query to speed up performance heavily
+- Split Cypher Query to speed up performance heavily (most critical performance improvement)
   - MATCH query to find nodes that solve constraint
   - 2nd query to get for the returned nodes the subgraph
-- Pooling of MongoDB Connections in Sig*Process, since they are separate processes the connection pool is not shared
+  - merge both graph (nodes based on gavc) to not loose any information (e.g., due to limit)
+- Pooling of MongoDB Connections in Sig*Process, since they are separate processes the connection pool is not shared => SigTest / Processor / MySigTestHandler in separate Process
