@@ -21,7 +21,7 @@ jobs:
       - name: Build Assembly package
         run: mvn assembly:single
       - name: Release
-          uses: softprops/action-gh-release@v1
-          if: startsWith(github.ref, 'refs/tags/')
-          with:
-            files: target/upcy-*-jar-with-dependencies.jar
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: target/upcy-*-jar-with-dependencies.jar
