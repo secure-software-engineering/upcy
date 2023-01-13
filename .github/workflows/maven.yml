@@ -27,7 +27,7 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-      # This is only needed as we have 2 repositorires in the pom.xml. file
+      # This is only needed since we have 2 repositories in the pom.xml. file
       - name: Ge Settings.xml for maven
         uses: s4u/maven-settings-action@v2.8.0
         with:
