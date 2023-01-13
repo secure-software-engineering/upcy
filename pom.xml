@@ -298,7 +298,7 @@
             <!-- use the github package registry for upcy-base -->
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/anddann/upcy-base</url>
+            <url>https://maven.pkg.github.com/anddann/ANYTHING</url>
         </repository>
         <repository>
             <!-- use the github package registry for upcy-base -->
