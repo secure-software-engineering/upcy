@@ -294,12 +294,13 @@
 
 
     <repositories>
-        <repository>
-            <!-- use the github package registry for sootdiff -->
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/secure-software-engineering/sootdiff</url>
-        </repository>
+        <!-- use the github package registry for sootdiff -->
+        <!--
+                <repository>
+                    <id>github</id>
+                    <name>GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/secure-software-engineering/sootdiff</url>
+                </repository>-->
         <repository>
             <!-- use the github package registry for upcy-base -->
             <id>github</id>
