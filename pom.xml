@@ -294,25 +294,20 @@
 
 
     <repositories>
+        <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
         <repository>
-            <!-- use the github package registry for upcy-base -->
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/anddann/*</url>
-        </repository>
-        <repository>
-            <!-- use the github package registry for upcy-base -->
-            <id>github2</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/anddann/mvn-ecosystem-graph</url>
+            <url>https://maven.pkg.github.com/anddann/m2-repository</url>
         </repository>
     </repositories>
 
     <distributionManagement>
+        <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
         <repository>
             <id>github</id>
             <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/anddann/upcy</url>
+            <url>https://maven.pkg.github.com/anddann/m2-repository</url>
         </repository>
     </distributionManagement>
 
