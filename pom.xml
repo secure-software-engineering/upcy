@@ -291,4 +291,29 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+
+    <repositories>
+        <repository>
+            <!-- use the github package registry for sootdiff -->
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/secure-software-engineering/sootdiff</url>
+        </repository>
+        <repository>
+            <!-- use the github package registry for upcy-base -->
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/anddann/upcy-base</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/anddann/upcy</url>
+        </repository>
+    </distributionManagement>
+
 </project>
