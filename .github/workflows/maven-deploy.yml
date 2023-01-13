@@ -2,6 +2,11 @@ name: Publish package to GitHub Packages and attach to release
 on:
   release:
     types: [created]
+
+# if pushing docker images fails https://stackoverflow.com/a/71193319 -- make sure to allow access for GitHub Actions to that package registry
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -14,6 +19,12 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish package
         run: mvn --batch-mode deploy
         env:
