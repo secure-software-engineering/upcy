@@ -294,18 +294,17 @@
 
 
     <repositories>
-        <!-- use the github package registry for sootdiff -->
-        <!--
-                <repository>
-                    <id>github</id>
-                    <name>GitHub Packages</name>
-                    <url>https://maven.pkg.github.com/secure-software-engineering/sootdiff</url>
-                </repository>-->
         <repository>
             <!-- use the github package registry for upcy-base -->
             <id>github</id>
             <name>GitHub Packages</name>
             <url>https://maven.pkg.github.com/anddann/upcy-base</url>
+        </repository>
+        <repository>
+            <!-- use the github package registry for upcy-base -->
+            <id>github2</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/anddann/mvn-ecosystem-graph</url>
         </repository>
     </repositories>
 
@@ -316,5 +315,7 @@
             <url>https://maven.pkg.github.com/anddann/upcy</url>
         </repository>
     </distributionManagement>
+
+
 
 </project>
