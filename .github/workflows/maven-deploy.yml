@@ -27,8 +27,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish package
         run: mvn --batch-mode deploy
+        #  Shared REPO requires different token  <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
       - name: Build Assembly package
         run: mvn assembly:single
       - name: Release
