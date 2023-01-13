@@ -7,7 +7,7 @@ services:
     env_file:
       - ./rabbitmq.env
     environment:
-      # increase the timeout -- that a worker uses for working an the program and then sending an ack
+      # increase the timeout -- that a worker uses for working on the program and then sending an ack
       - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 86400000
     deploy:
       replicas: 1

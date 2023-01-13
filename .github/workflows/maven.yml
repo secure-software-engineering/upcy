@@ -10,9 +10,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
   build:
@@ -27,9 +27,21 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
+      # This is only needed since we have 2 repositories in the pom.xml. file
+      - name: Ge Settings.xml for maven
+        uses: s4u/maven-settings-action@v2.8.0
+        with:
+          servers: |
+            [{
+                "id": "githubsse",
+                "username": "${{ github.actor }}",
+                "password": "${{ secrets.GITHUB_TOKEN }}"
+            }]
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-
+        #  Shared REPO requies different token  <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
      # - name: Update dependency graph
       #  uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6

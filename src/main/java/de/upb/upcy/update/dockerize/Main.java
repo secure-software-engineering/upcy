@@ -35,7 +35,7 @@ public class Main extends RabbitMQCollective {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private final ArrayList<String> doneProjectNames = new ArrayList<>();
   private final ArrayList<String> todoProjectNames = new ArrayList<>();
-  private FileServerUpload httpClient;
+  private IClient client;
   private Path projectDir;
 
   public Main() {
@@ -89,7 +89,7 @@ public class Main extends RabbitMQCollective {
       final ZipFile zipFile = new ZipFile(zipFileName);
       zipFile.addFolder(csvOutPutDir.toFile());
 
-      httpClient.uploadFileWebDav(zipFile.getFile());
+      client.uploadFile(zipFile.getFile());
       LOGGER.info("[Worker] Uploading files done");
 
     } catch (IOException | GitAPIException e) {
@@ -132,8 +132,8 @@ public class Main extends RabbitMQCollective {
 
   @Override
   protected void preFlightCheck() throws IOException {
-    this.httpClient =
-        new FileServerUpload(
+    this.client =
+        IClient.createClient(
             System.getenv("FILESERVER_HOST"),
             System.getenv("FILESERVER_USER"),
             System.getenv("FILESERVER_PASS"));
@@ -141,7 +141,7 @@ public class Main extends RabbitMQCollective {
     // download projects file
     try {
       final Path target = Paths.get("done_projects.txt");
-      httpClient.getFileWebDav("done_projects.txt", target);
+      client.downloadFile("done_projects.txt", target);
 
       try (BufferedReader br = Files.newBufferedReader(target)) {
         String line;
@@ -156,7 +156,7 @@ public class Main extends RabbitMQCollective {
 
     try {
       final Path target = Paths.get("todo_projects.txt");
-      httpClient.getFileWebDav("todo_projects.txt", target);
+      client.downloadFile("todo_projects.txt", target);
 
       if (Files.size(target) != 0) {
 
@@ -173,7 +173,7 @@ public class Main extends RabbitMQCollective {
     LOGGER.info("Found #{} todo projects", todoProjectNames.size());
 
     final Path target = Paths.get("project_input_recommendation.zip");
-    httpClient.getFileWebDav("project_input_recommendation.zip", target);
+    client.downloadFile("project_input_recommendation.zip", target);
 
     final ZipFile zipFile = new ZipFile(target.toFile());
     final Path projectDir = Paths.get("projects");
@@ -183,9 +183,9 @@ public class Main extends RabbitMQCollective {
 
   @Override
   protected void shutdown() {
-    if (this.isWorkerNode() && this.httpClient != null) {
+    if (this.isWorkerNode() && this.client != null) {
 
-      this.httpClient.close();
+      this.client.close();
     }
     // nothing
 
