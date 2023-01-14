@@ -47,3 +47,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: target/upcy-*-jar-with-dependencies.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
