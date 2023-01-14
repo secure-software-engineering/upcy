@@ -11,7 +11,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      # required by the release step
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@v3
