@@ -9,14 +9,6 @@ import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -26,6 +18,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Main class for computing updates for a Maven module. Input is read via the CLI.
@@ -69,10 +70,29 @@ public class MainMavenComputeUpdateSuggestion {
             .hasArg()
             .required(true)
             .build());
+    options.addOption(
+        Option.builder("preflight")
+            .desc("check if everything is running")
+            .optionalArg(true)
+            .hasArg(false)
+            .required(false)
+            .build());
 
     try {
       // parse the command line arguments
       CommandLine line = parser.parse(options, args);
+      if (line.hasOption("preflight")) {
+        System.out.println("Running Pre-Flight Checks...");
+        // execute preflight check
+        final boolean b = PreFlight.preFlightCheck();
+        if (b) {
+          System.out.println("Everything is working!");
+          System.exit(0);
+        }
+        System.err.println("Pre-Flight Check failed!");
+        System.exit(1);
+      }
+
       handleModule(
           line.getOptionValue("module"),
           line.getOptionValue("dg"),
