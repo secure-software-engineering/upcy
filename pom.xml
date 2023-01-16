@@ -297,12 +297,12 @@
         <!-- shared repo -->
         <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
         <repository>
-            <id>github</id>
+            <id>github-anddann</id>
             <name>GitHub Packages</name>
             <url>https://maven.pkg.github.com/anddann/m2-repository</url>
         </repository>
         <repository>
-            <id>githubsse</id>
+            <id>github</id>
             <name>GitHub Sootdiff Packages</name>
             <url>https://maven.pkg.github.com/secure-software-engineering/sootdiff</url>
         </repository>
@@ -311,7 +311,7 @@
     <distributionManagement>
         <!-- https://dev.to/jakub_zalas/how-to-publish-maven-packages-to-a-single-github-repository-3lkc -->
         <repository>
-            <id>github</id>
+            <id>github-anddann</id>
             <name>GitHub Packages</name>
             <url>https://maven.pkg.github.com/anddann/m2-repository</url>
         </repository>

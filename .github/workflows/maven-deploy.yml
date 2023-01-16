@@ -32,12 +32,7 @@ jobs:
         with:
           servers: |
             [{
-                "id": "githubsse",
-                "username": "${{ github.actor }}",
-                "password": "${{ secrets.GITHUB_TOKEN }}"
-            },
-            {
-                "id": "github",
+                "id": "github-anddann",
                 "username": "${{ secrets.actor }}",
                 "password": "${{ secrets.DEPLOY_GITHUB_TOKEN }}"
             }]
