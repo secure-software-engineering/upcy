@@ -103,6 +103,7 @@ The pipeline consists of **one** `rabbitmq` message broker container for distrib
 
 Before running the containers copy the file `upcy.sample.env` to `upcy.env` and adapt the environment variables there.
 To save the results, the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
+The `FILESERVER_HOST` can be a WebDav server, starting with `https://` or a local folder, starting with `file://`
 The producer node reads as input from `FILESERVER_HOST/project_input_recommendation.zip`.
 For creating the file from [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) run the bash script `prepare-inputfile.sh`
 If you prefer to create the file manually, keep in mind that
