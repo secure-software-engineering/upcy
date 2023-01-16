@@ -36,6 +36,11 @@ jobs:
                 "id": "githubsse",
                 "username": "${{ github.actor }}",
                 "password": "${{ secrets.GITHUB_TOKEN }}"
+            },
+            {
+                "id": "github",
+                "username": "${{ secrets.actor }}",
+                "password": "${{ secrets.DEPLOY_GITHUB_TOKEN }}"
             }]
       - name: Build with Maven
         run: mvn -B package --file pom.xml
