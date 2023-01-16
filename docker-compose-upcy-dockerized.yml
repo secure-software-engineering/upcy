@@ -8,7 +8,7 @@ services:
       - ./rabbitmq.env
     environment:
       # increase the timeout -- that a worker uses for working on the program and then sending an ack
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 86400000
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 172800000
     deploy:
       replicas: 1
       mode: replicated
@@ -50,6 +50,8 @@ services:
     depends_on:
       - rabbitmq
       - producer
+    volumes:
+      - ./upcy-results-folder:/mnt/results
     env_file:
       - ./upcy.sample.env
     environment:

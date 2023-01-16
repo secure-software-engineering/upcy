@@ -1,28 +1,33 @@
 # UpCy - Safely Updating Outdated Dependencies
 
-Recent research has shown that developers hesitate to update dependencies and mistrust automated approaches such as
-Dependabot, since they are afraid of introducing incompatibilities that break their project. In fact, these approaches
-only suggest na\"ive updates for a single outdated library but do not ensure compatibility with other dependent
-libraries in the project. To alleviate this situation and support developers in finding an update with minimal
-incompatibilities, we present UpCY. UpCy computes the unified dependency graph (combining the project's dependency graph
-and call graph) and uses min-(s,t)-cut algorithms to find updates of a library that have the least amount of
-incompatibilities to other project dependencies.
+UpCy is a tool that automatically suggests (source- and ABI-compatible) updates for a Maven project.
+UpCy is implemented in Java.
 
-## Prerequisites
-To execute und build UpCy yourself you need to have the following software installed on your machine:
+## Requirements
+To execute and build UpCy yourself, you need to have the following software installed:
 - JDK >= 1.8.0_231
 - Maven >= 3.8.4
 - Docker >= 20.10.17
 
 
 
+## What is UpCy?
+**UpCy** is a tool for Maven projects that automatically finds a list of update steps that updates a dependency to a target version while minimizing the number of API incompatibilities (source code- and ABI).
+Typically, a dependency in a Maven project is used by multiple libraries in the project's dependency tree. Thus, developers usually need to update not only the single dependencies but find out what other dependencies use that dependency as well and find a compatible version.
+To ease fixing of remaining incompatibilities, **UpCy** uses static analysis to identify API incompatible methods that are *actually* used in the project.
+**UpCy** does this automatically and reports (remaining) incompatible API methods.
+
+Given a Maven project, one of its dependencies, and the target update version, UpCy finds a set of update steps with a minimum number of source code- and binary incompatibilities by finding min-(s,t)-cut and querying on the entire dependency graph of Maven Central.
+
+Developers can use **UpCy** to automatically find compatible updates, e.g., to eliminate certain vulnerable dependencies (especially transitive ones) from a project's dependency graph or update outdated dependencies.
+
 ## Setup
 
 ### Install SootDiff
- - Clone the SootDiff repository `git clone https://github.com/secure-software-engineering/sootdiff.git`
- - change into the folder `cd sootdiff`
- - Build and install SootDiff in your local maven repository `mvn clean compile install -DskipTests`
- 
+- Clone the SootDiff repository `git clone https://github.com/secure-software-engineering/sootdiff.git`
+- change into the folder `cd sootdiff`
+- Build and install SootDiff in your local maven repository `mvn clean compile install -DskipTests`
+
 
 ### Install Maven-EcoSystem (libraries for assessing the Neo4j DB of Maven Central)
 - Clone the Maven-EcoSystem repository `git clone https://github.com/anddann/mvn-ecosystem-graph`
@@ -38,20 +43,20 @@ To execute und build UpCy yourself you need to have the following software insta
 ###  Setup Graph Database of Maven Central (Neo4j) & Database of Binary- & Source-Code Incompatibilities (MongoDB)
 Download the database files `incompabilities_mongodb.tar.gz` and `maven-central_neo4j.tar.gz` from <https://zenodo.org/record/7037674#.YxDXFOxBzUY>.
 Extract both files using the command `tar xzf <FileName>`. The unzipped folders contain the databases.
-Then start an instance of a mongoDB and Neo4j database and mount these two folders as volumes.
+Then start an instance of a MongoDB and Neo4j database and mount these two folders as volumes.
 A ready-to-use configuration is in the file `docker-compose-dbs.yml`.
 To run it execute `docker-compose -f docker-compose-dbs.yml up`.
 This fires ups the databases and mounts the extracted folders as volumes.
 Then wait for the databases to start.
 
-### Build UpCy 
+### Build UpCy
 - To build UpCy and its docker container run `mvn clean compile package`.
 
 
 ## Run UpCy
 
 ### Set environment variables
-For connecting to the databases the following environment variables **must** be set with the concrete values.
+For connecting to the databases, the following environment variables **must** be set with concrete values.
 - NEO4J_URL: bolt://localhost:7687
 - NEO4J_USER: neo4j
 - NEO4J_PASS DUMMYPASSWORD
@@ -63,8 +68,8 @@ For connecting to the databases the following environment variables **must** be 
 ## Run UpCy
 
 ## Execute on a Maven Module
-To execute UpCy and its call graph analysis based on Soot, your Maven module must compile since Soot uses the bytecode class for call graph construction.
-Further, all dependencies must resolve properly.
+To execute UpCy and the call graph analysis based on Soot your Maven module must compile since Soot uses the bytecode class for call graph construction.
+Further, all dependencies must be resolved.
 
 First, compile the module by running `mvn compile`.
 
@@ -85,31 +90,32 @@ Fourth, UpCy will create a file `_recommendation_results.csv` in the module's fo
 
 ### Re-Run experiments
 The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
-To re-run the experiments download the [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) and unzip it on your local machine.
+To re-run the experiments, download the [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) and unzip it on your local machine.
 Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
-The code then clones each repository, and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
+The code then clones each repository and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
 
 
 #### Re-Run experiments using the Docker pipeline
 The docker pipeline allows you to re-run the UpCy experiments distributed on multiple machines using the docker-compose file `docker-compose-upcy-dockerized.yml`
-To do so, the pipeline consists of **one** `rabbitmq` message broker container for distributing the workload, **one** `producer` container creating the tasks, and **multiple** worker containers that run UpCy.
+The pipeline consists of **one** `rabbitmq` message broker container for distributing the workload, **one** `producer` container creating the tasks, and **multiple** worker containers that run UpCy.
 
 
 
 Before running the containers copy the file `upcy.sample.env` to `upcy.env` and adapt the environment variables there.
-For saving the results the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
-The producer node reads as an input from `FILESERVER_HOST/project_input_recommendation.zip`. 
+To save the results, the containers connect to an external `FILESERVER_HOST` that you must specify in the env file.
+The `FILESERVER_HOST` can be a WebDav server, starting with `https://` or a local folder, starting with `file://`
+The producer node reads as input from `FILESERVER_HOST/project_input_recommendation.zip`.
 For creating the file from [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) run the bash script `prepare-inputfile.sh`
-If you prefer to create the file manually keep in mind that
- - the file must contain a root folder `projects`
- - sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
- - the sub-folders must contain the `_update-steps.csv` files
- - the example input is [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY). Note the file does not have the root folder `projects`, thus you must unzip it and add the root folder yourself.
+If you prefer to create the file manually, keep in mind that
+- the file must contain a root folder `projects`
+- sub-folders with `repoOwner_repoName` and containing a `COMMIT` file
+- the sub-folders must contain the `_update-steps.csv` files
+- the example input is [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY). Note the file does not have the root folder `projects`. Thus, you must unzip it and add the root folder yourself.
 
 
 ## ToDos (Performance Improvements)
 - Split Cypher Query to speed up performance heavily (most critical performance improvement)
   - MATCH query to find nodes that solve constraint
   - 2nd query to get for the returned nodes the subgraph
-  - merge both graph (nodes based on gavc) to not loose any information (e.g., due to limit)
-- Pooling of MongoDB Connections in Sig*Process, since they are separate processes the connection pool is not shared => SigTest / Processor / MySigTestHandler in separate Process
+  - merge both graph (nodes based on gavc) to not lose any information (e.g., due to limit)
+- Pooling of MongoDB Connections in Sig*Process, since they are separate processes, the connection pool is not shared => SigTest / Processor / MySigTestHandler in separate Process
