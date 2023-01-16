@@ -24,7 +24,7 @@ jobs:
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.actor }}
+          username: ${{ secrets.ACTOR }}
           password: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
       # This is only needed since we have 2 repositories in the pom.xml. file, otherwise the GITHUB_TOKEN is sufficient
       - name: Generate Settings.xml for maven
@@ -33,7 +33,7 @@ jobs:
           servers: |
             [{
                 "id": "github-anddann",
-                "username": "${{ secrets.actor }}",
+                "username": "${{ secrets.ACTOR }}",
                 "password": "${{ secrets.DEPLOY_GITHUB_TOKEN }}"
             }]
       - name: Publish package

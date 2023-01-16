@@ -34,7 +34,7 @@ jobs:
           servers: |
             [{
                 "id": "github-anddann",
-                "username": "${{ secrets.actor }}",
+                "username": "${{ secrets.ACTOR }}",
                 "password": "${{ secrets.DEPLOY_GITHUB_TOKEN }}"
             }]
       - name: Build with Maven
