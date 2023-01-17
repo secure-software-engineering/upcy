@@ -12,8 +12,9 @@ public final class PreFlight {
   private static final Logger LOGGER = LoggerFactory.getLogger(PreFlight.class);
 
   private static boolean reachableMongo() {
-    LOGGER.info("Check if MongoDB is up and running");
-    try (Socket ignored = new Socket(MongoDBHandler.getMongoHostFromEnvironment(), 27017)) {
+    final String mongoHostFromEnvironment = MongoDBHandler.getMongoHostFromEnvironment();
+    LOGGER.info("Check if MongoDB is up and running {}:{}", mongoHostFromEnvironment, 27017);
+    try (Socket ignored = new Socket(mongoHostFromEnvironment, 27017)) {
       LOGGER.info("MongoDB is reachable");
       return true;
     } catch (IOException ignored) {
@@ -23,11 +24,11 @@ public final class PreFlight {
   }
 
   private static boolean reachableNeo4j() {
-    LOGGER.info("Check if Neo4j is up and running");
     final String neo4jURL = Neo4JConnector.getNeo4jURL();
     final String cleardURL = neo4jURL.replace("bolt://", "");
     final String host = cleardURL.split(":")[0];
     final String port = cleardURL.split(":")[1];
+    LOGGER.info("Check if Neo4j is up and running {}:{}", host, port);
     try (Socket ignored = new Socket(host, Integer.parseInt(port))) {
       LOGGER.info("Neo4j is reachable");
       return true;
