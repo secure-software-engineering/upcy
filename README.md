@@ -78,7 +78,7 @@ Second, generate the dependency graph for the project by executing:
 com.github.ferstl:depgraph-maven-plugin:4.0.1:graph -DshowVersions -DshowGroupIds -DshowDuplicates -DshowConflicts -DgraphFormat=json
 ```
 
-Third, invoke the UpCy class `de.upb.upcy.MainMavenComputeUpdateSuggestion` with the following arguments:
+Third, invoke the UpCy class `de.upb.upcy.update.MainMavenComputeUpdateSuggestion` with the following arguments:
 * -dg,--dependency-graph <arg>   the generated dependency graph as json file
 * -gav <arg>                     the GAV of the dependency to update in the form - group:artifact:version
 * -module,--maven-module <arg>   path to the maven module containing the pom.xml
@@ -89,9 +89,9 @@ Fourth, UpCy will create a file `_recommendation_results.csv` in the module's fo
 
 
 ### Re-Run experiments
-The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
+The main class for re-running UpCy is `de.upb.upcy.update.MainComputeUpdateSuggestion`.
 To re-run the experiments, download the [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) and unzip it on your local machine.
-Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
+Then pass the unzipped folder as an argument to the class `de.upb.upcy.update.MainComputeUpdateSuggestion`.
 The code then clones each repository and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
 
 
