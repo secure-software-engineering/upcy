@@ -2,7 +2,6 @@ package de.upb.upcy.update.dockerize;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.maven.surefire.shared.io.FileUtils;
