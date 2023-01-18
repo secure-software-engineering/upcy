@@ -1,4 +1,4 @@
-package de.upb.upcy;
+package de.upb.upcy.update;
 
 import static java.util.stream.Collectors.groupingBy;
 

@@ -57,12 +57,14 @@ Then wait for the databases to start.
 
 ### Set environment variables
 For connecting to the databases, the following environment variables **must** be set with concrete values.
-- NEO4J_URL: bolt://localhost:7687
-- NEO4J_USER: neo4j
-- NEO4J_PASS DUMMYPASSWORD
-- MONGO_USER: user
-- MONGO_HOST: localhost
-- MONGO_PW: DUMMYPASSWORD
+```
+NEO4J_URL=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASS=DUMMYPASSWORD
+MONGO_USER=user
+MONGO_HOST=localhost
+MONGO_PW=DUMMYPASSWORD
+```
 
 
 ## Run UpCy
@@ -75,23 +77,24 @@ First, compile the module by running `mvn compile`.
 
 Second, generate the dependency graph for the project by executing:
 ```
-com.github.ferstl:depgraph-maven-plugin:4.0.1:graph -DshowVersions -DshowGroupIds -DshowDuplicates -DshowConflicts -DgraphFormat=json
+mvn com.github.ferstl:depgraph-maven-plugin:4.0.1:graph -DshowVersions -DshowGroupIds -DshowDuplicates -DshowConflicts -DgraphFormat=json
 ```
 
-Third, invoke the UpCy class `de.upb.upcy.MainMavenComputeUpdateSuggestion` with the following arguments:
+Third, invoke the UpCy class `java -cp <PATH-TO-UPCY-JAR> de.upb.upcy.update.MainMavenComputeUpdateSuggestion` with the following arguments:
 * -dg,--dependency-graph <arg>   the generated dependency graph as json file
 * -gav <arg>                     the GAV of the dependency to update in the form - group:artifact:version
 * -module,--maven-module <arg>   path to the maven module containing the pom.xml
 * -targetGav <arg>               the target GAV in the form - group:artifact:version
+* -preflight                     execute a preflight check
 
 Fourth, UpCy will create a file `_recommendation_results.csv` in the module's folder with the computed update options.
 
 
 
 ### Re-Run experiments
-The main class for re-running UpCy is `de.upb.upcy.MainComputeUpdateSuggestion`.
+The main class for re-running UpCy is `de.upb.upcy.update.MainComputeUpdateSuggestion`.
 To re-run the experiments, download the [experimental-results_dataset.zip](https://zenodo.org/record/7037674#.YxDXFOxBzUY) and unzip it on your local machine.
-Then pass the unzipped folder as an argument to the class `de.upb.upcy.MainComputeUpdateSuggestion`.
+Then pass the unzipped folder as an argument to the class `de.upb.upcy.update.MainComputeUpdateSuggestion`.
 The code then clones each repository and executes UpCy on each project and with each update step given in the `_update-steps.csv` files.
 
 
