@@ -1,19 +1,16 @@
 package de.upb.upcy.update.dockerize;
 
-import org.apache.maven.surefire.shared.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.apache.maven.surefire.shared.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * @author adann
- */
+/** @author adann */
 public class LocalClient implements IClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalClient.class);
 
