@@ -9,6 +9,17 @@ import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,15 +28,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Main class for computing updates for a Maven module. Input is read via the CLI.
@@ -138,7 +140,13 @@ public class MainMavenComputeUpdateSuggestion {
     }
 
     try {
-      Path outputCsvFile = outputDir.resolve(projectName + "_recommendation_results.csv");
+
+      String fileNamePrefix = projectName
+      if (StringUtils.isEmpty(fileNamePrefix) || fileNamePrefix == ".") {
+        fileNamePrefix = modulePath.getParent().getFileName().toString();
+      }
+
+      Path outputCsvFile = outputDir.resolve(fileNamePrefix + "_recommendation_results.csv");
       CSVWriter writer = new CSVWriter(new FileWriter(outputCsvFile.toFile()));
       StatefulBeanToCsv<UpdateSuggestion> sbc =
           new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer)
