@@ -9,6 +9,14 @@ import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.build.PipelineRunner;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -19,15 +27,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Main class for computing updates for a Maven module. Input is read via the CLI.
@@ -141,7 +140,7 @@ public class MainMavenComputeUpdateSuggestion {
 
     try {
 
-      String fileNamePrefix = projectName
+      String fileNamePrefix = projectName;
       if (StringUtils.isEmpty(fileNamePrefix) || fileNamePrefix == ".") {
         fileNamePrefix = modulePath.getParent().getFileName().toString();
       }
