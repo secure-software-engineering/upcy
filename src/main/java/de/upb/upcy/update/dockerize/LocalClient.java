@@ -16,7 +16,7 @@ public class LocalClient implements IClient {
   private final Path rootDir;
 
   LocalClient(String rootPath) {
-    this.rootDir = Paths.get(URI.create(rootPath));
+    this.rootDir = Paths.get(rootPath);
     LOGGER.info("Created LocalClient");
   }
 
