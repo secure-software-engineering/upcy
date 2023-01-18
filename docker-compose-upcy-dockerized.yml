@@ -21,7 +21,6 @@ services:
     image: ghcr.io/anddann/upcy:1.6.1-SNAPSHOT
     depends_on:
       - rabbitmq
-      - fileServer
     deploy:
       # we only need one producer
       replicas: 1
