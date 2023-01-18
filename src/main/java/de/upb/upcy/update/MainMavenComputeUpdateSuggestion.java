@@ -24,6 +24,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +139,13 @@ public class MainMavenComputeUpdateSuggestion {
     }
 
     try {
-      Path outputCsvFile = outputDir.resolve(projectName + "_recommendation_results.csv");
+
+      String fileNamePrefix = projectName;
+      if (StringUtils.isEmpty(fileNamePrefix) || fileNamePrefix == ".") {
+        fileNamePrefix = modulePath.getParent().getFileName().toString();
+      }
+
+      Path outputCsvFile = outputDir.resolve(fileNamePrefix + "_recommendation_results.csv");
       CSVWriter writer = new CSVWriter(new FileWriter(outputCsvFile.toFile()));
       StatefulBeanToCsv<UpdateSuggestion> sbc =
           new StatefulBeanToCsvBuilder<UpdateSuggestion>(writer)
