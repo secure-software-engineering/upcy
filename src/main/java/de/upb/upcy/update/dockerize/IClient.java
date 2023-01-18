@@ -16,7 +16,7 @@ public interface IClient {
     // Todo make nice in the future
     if (host.startsWith("http://") || host.startsWith("https://")) {
       return new WebDavClient(host, user, pass);
-    } else if (host.startsWith("file://")) {
+    } else if (host.startsWith("file:/")) {
       return new LocalClient(host);
     }
     return null;
