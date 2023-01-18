@@ -1,15 +1,19 @@
 package de.upb.upcy.update.dockerize;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.apache.maven.surefire.shared.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** @author adann */
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/**
+ * @author adann
+ */
 public class LocalClient implements IClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(LocalClient.class);
 
@@ -17,6 +21,10 @@ public class LocalClient implements IClient {
 
   LocalClient(String rootPath) {
     this.rootDir = Paths.get(URI.create(rootPath));
+    if (!Files.exists(rootDir) && !Files.isDirectory(rootDir)) {
+      throw new IllegalArgumentException(String.format("No valid folder %s", rootPath));
+    }
+
     LOGGER.info("Created LocalClient");
   }
 

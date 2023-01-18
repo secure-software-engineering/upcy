@@ -50,7 +50,7 @@ services:
       - rabbitmq
       - producer
     volumes:
-      - ./upcy-results-folder:/mnt/results
+      - ./upcyresults:/mnt/results
     env_file:
       - ./upcy.sample.env
     environment:
