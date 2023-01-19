@@ -60,6 +60,8 @@ services:
       - TIMEOUT=21600
     networks:
       - pipeline-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   pipeline-net:
