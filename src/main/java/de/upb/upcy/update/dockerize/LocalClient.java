@@ -3,6 +3,7 @@ package de.upb.upcy.update.dockerize;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.maven.surefire.shared.io.FileUtils;
@@ -17,6 +18,10 @@ public class LocalClient implements IClient {
 
   LocalClient(String rootPath) {
     this.rootDir = Paths.get(URI.create(rootPath));
+    if (!Files.exists(rootDir) && !Files.isDirectory(rootDir)) {
+      throw new IllegalArgumentException(String.format("No valid folder %s", rootPath));
+    }
+
     LOGGER.info("Created LocalClient");
   }
 

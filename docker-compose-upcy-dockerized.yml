@@ -18,10 +18,9 @@ services:
   #creates the work messages
   producer:
     restart: always
-    image: ghcr.io/anddann/upcy:1.6-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.6.1-SNAPSHOT
     depends_on:
       - rabbitmq
-      - fileServer
     deploy:
       # we only need one producer
       replicas: 1
@@ -30,6 +29,8 @@ services:
         condition: on-failure
         delay: 90s
         window: 240s
+    volumes:
+      - ./upcyresults:/mnt/results
     env_file:
       - ./upcy.sample.env
     environment:
@@ -39,7 +40,7 @@ services:
 
   worker:
     restart: always
-    image: ghcr.io/anddann/upcy:1.6-SNAPSHOT
+    image: ghcr.io/anddann/upcy:1.6.1-SNAPSHOT
     deploy:
       replicas: 2
       mode: replicated
@@ -51,7 +52,7 @@ services:
       - rabbitmq
       - producer
     volumes:
-      - ./upcy-results-folder:/mnt/results
+      - ./upcyresults:/mnt/results
     env_file:
       - ./upcy.sample.env
     environment:
@@ -59,6 +60,8 @@ services:
       - TIMEOUT=21600
     networks:
       - pipeline-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   pipeline-net:
