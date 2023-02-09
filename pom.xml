@@ -270,12 +270,12 @@
         <dependency>
             <groupId>de.upb.upcy.base</groupId>
             <artifactId>sigtest-generator</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.5.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.upb.upcy.base</groupId>
             <artifactId>commons</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.5.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
