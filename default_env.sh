@@ -1,0 +1,10 @@
+export NEO4J_PORT=7687
+export NEO4J_URL=bolt://localhost:${NEO4J_PORT}
+export NEO4J_USER=neo4j
+export NEO4J_PASS=DUMMYPASSWORD
+export MONGO_HOST=localhost
+export MONGO_USER=user
+export MONGO_PW=DUMMYPASSWORD
+export MONGO_PORT=27017
+export MIN_PATH_LENGTH=5
+export NEO4J_TRANSACTION_TIMEOUT=300

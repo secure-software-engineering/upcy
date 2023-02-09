@@ -6,7 +6,7 @@
 
     <groupId>de.upb</groupId>
     <artifactId>upcy</artifactId>
-    <version>1.6.1-SNAPSHOT</version>
+    <version>1.6.2-SNAPSHOT</version>
 
     <properties>
         <docker.image.prefix>ghcr.io/anddann/</docker.image.prefix>
@@ -270,12 +270,12 @@
         <dependency>
             <groupId>de.upb.upcy.base</groupId>
             <artifactId>sigtest-generator</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.5.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.upb.upcy.base</groupId>
             <artifactId>commons</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.5.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
