@@ -69,6 +69,7 @@ public class SinkRootQuery implements CypherQuery {
     if (sinkRoots.size() == 1) {
 
       GraphModel.Artifact rootNode = (GraphModel.Artifact) sinkRoots.keySet().toArray()[0];
+      // if the root node is equal the library to update or both nodes belong to the same framework
       if ((rootNode == libToUpdateInDepGraph
               || blossomGraphCreator.isBlossomNode(rootNode, sharedNode))
           && sharedNode == libToUpdateInDepGraph) {
