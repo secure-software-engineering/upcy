@@ -27,6 +27,8 @@
         <!-- dependency versions -->
         <slf4j.version>2.0.16</slf4j.version>
         <junit.version>4.13</junit.version>
+        <maven-release-plugin.version>3.0.0-M6</maven-release-plugin.version>
+        <lombok.version>1.18.34</lombok.version>
     </properties>
 
 
@@ -60,7 +62,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>3.0.0-M6</version>
+                <version>${maven-release-plugin.version}</version>
                 <configuration>
                     <checkModificationExcludes>
                         <checkModificationExclude>pom.xml</checkModificationExclude>
@@ -95,7 +97,16 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
+                    <release>21</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
+
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -276,7 +287,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
