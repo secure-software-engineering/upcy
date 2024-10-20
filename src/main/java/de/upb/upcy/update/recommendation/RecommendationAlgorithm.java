@@ -101,7 +101,7 @@ public class RecommendationAlgorithm {
   }
 
   public Pair<DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency>, GraphModel>
-      getDepGraph(Path jsonDepGraph) throws IOException {
+  getDepGraph(Path jsonDepGraph) throws IOException {
     pairGraph = GraphParser.parseGraph(jsonDepGraph);
     return pairGraph;
   }
@@ -195,6 +195,11 @@ public class RecommendationAlgorithm {
                     new IllegalStateException(
                         "Cannot find library to update with gav: " + gavOfLibraryToUpdate));
 
+    if (isRelevantCompileDependency(libToUpdateInDepGraph)) {
+      LOGGER.error("Only compile dependencies are currently supported");
+      return Collections.emptyList();
+    }
+
     if (shrinkedCG == null || shrinkedCG.vertexSet().isEmpty() || shrinkedCG.edgeSet().isEmpty()) {
       LOGGER.error("Empty shrinked CG");
     }
@@ -214,7 +219,7 @@ public class RecommendationAlgorithm {
     // get the weight -- if weight 0-- we are done
     if (simpleUpdateSuggestion.getStatus() == UpdateSuggestion.SuggestionStatus.SUCCESS
         && (simpleUpdateSuggestion.getViolations() == null
-            || simpleUpdateSuggestion.getViolations().isEmpty())) {
+        || simpleUpdateSuggestion.getViolations().isEmpty())) {
       LOGGER.info("Simple Update does not produce any violations, Done");
       return Collections.singletonList(simpleUpdateSuggestion);
     }

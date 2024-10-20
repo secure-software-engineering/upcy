@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PipelineRunner {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(PipelineRunner.class);
   private final String projectName;
   private final Path projectPomFile;
@@ -54,7 +55,7 @@ public class PipelineRunner {
       if (integerStringStringTriple.getLeft() != 0) {
         throw new MavenInvokerProject.BuildToolException(integerStringStringTriple.getRight());
       }
-      LOGGER.info("Successfully build initial with clean compile install");
+      LOGGER.info("Successfully initial build with clean compile install");
 
     } catch (MavenInvokerProject.BuildToolException e) {
       LOGGER.error("Could not build pom file: {}", projectPomFile.toAbsolutePath());
@@ -103,7 +104,7 @@ public class PipelineRunner {
 
     List<Future<org.apache.commons.lang3.tuple.Pair<String, MavenInvokerProject>>> futures;
     try {
-      LOGGER.info("Found #{} projects to build", tasks.size());
+      LOGGER.info("Found #{} sub-modules to build", tasks.size());
       futures = executorService.invokeAll(tasks);
       for (Future<org.apache.commons.lang3.tuple.Pair<String, MavenInvokerProject>> future :
           futures) {
@@ -117,6 +118,7 @@ public class PipelineRunner {
       }
 
       // now invoke the root project pom
+      LOGGER.info("Build root/main module  #{}", projectPomFile.toAbsolutePath().toString());
       futures = executorService.invokeAll(rootProjectCallable);
       for (Future<org.apache.commons.lang3.tuple.Pair<String, MavenInvokerProject>> future :
           futures) {
