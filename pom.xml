@@ -15,6 +15,8 @@
   </modules>
 
   <properties>
+    <revision>2.0.0-SNAPSHOT</revision>
+
     <enforced-maven-version>3.6.1</enforced-maven-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spotbugs-maven-plugin.version>4.0.0</spotbugs-maven-plugin.version>
