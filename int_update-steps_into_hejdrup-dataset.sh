@@ -1,14 +1,22 @@
 #!/bin/bash
 
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <working-directory>"
+  exit 1
+fi
+
+workdir="$1"
+
 # Find and replace pattern in each matching file
-find . -type f -name "*_update-steps.csv" | while read -r file; do
+find "$workdir" -type f -name "*_update-steps.csv" | while read -r file; do
   echo "Found $file"
   sed -E -i '' 's/_projectRun[0-9]+//g' "$file"
 done
 
 
 
-find . -type f -name "*_update-steps.csv" | while read -r file; do
+find "$workdir" -type f -name "*_update-steps.csv" | while read -r file; do
 
   echo "Found2 $file"
   # Strip path and extension
