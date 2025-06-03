@@ -38,6 +38,12 @@
   <dependencies>
 
     <dependency>
+      <groupId>com.cifre.sap.su</groupId>
+      <artifactId>goblinUpdater</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>de.upb.upcy</groupId>
       <artifactId>upcy-tool</artifactId>
       <version>${project.version}</version>
