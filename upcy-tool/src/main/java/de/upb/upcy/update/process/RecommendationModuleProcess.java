@@ -8,7 +8,7 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.update.MainComputeUpdateSuggestion;
-import de.upb.upcy.update.build.Result;
+import de.upb.upcy.update.build.NaiveUpdateStep;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,7 +37,7 @@ class RecommendationModuleProcess {
               inputParameter.getCsvFile(),
               inputParameter.getOutputDir(),
               inputParameter.getModuleName(),
-              inputParameter.getResults());
+              inputParameter.getNaiveUpdateSteps());
       // write modules in separate files --- since we cannot serialize them into one (soot method
       // is not serializable with json)
       Path outputCsvFile =
@@ -63,7 +63,7 @@ class RecommendationModuleProcess {
     private String csvFile;
     private String outputDir;
     private String moduleName;
-    private List<Result> results;
+    private List<NaiveUpdateStep> naiveUpdateSteps;
     private String resultFile;
   }
 }

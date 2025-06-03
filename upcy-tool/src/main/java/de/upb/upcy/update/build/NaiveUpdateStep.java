@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Result {
+public class NaiveUpdateStep {
   @JsonProperty @CsvBindByName private String projectName;
   @JsonProperty @CsvBindByName private int inDegree = 0;
   @JsonProperty @CsvBindByName private String orgGav;

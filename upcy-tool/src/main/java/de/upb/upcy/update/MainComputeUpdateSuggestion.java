@@ -11,8 +11,8 @@ import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import de.upb.upcy.base.build.Utils;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
+import de.upb.upcy.update.build.NaiveUpdateStep;
 import de.upb.upcy.update.build.PipelineRunner;
-import de.upb.upcy.update.build.Result;
 import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import de.upb.upcy.update.recommendation.UpdateSuggestion;
 import java.io.BufferedWriter;
@@ -116,19 +116,19 @@ public class MainComputeUpdateSuggestion {
 
     final String projectName = parent.getFileName().toString();
 
-    List<Result> results;
+    List<NaiveUpdateStep> naiveUpdateSteps;
     try (Reader reader = Files.newBufferedReader(csvFile)) {
-      CsvToBean<Result> sbc =
-          new CsvToBeanBuilder<Result>(reader)
-              .withType(Result.class)
+      CsvToBean<NaiveUpdateStep> sbc =
+          new CsvToBeanBuilder<NaiveUpdateStep>(reader)
+              .withType(NaiveUpdateStep.class)
               .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
               .build();
-      results = sbc.parse();
+      naiveUpdateSteps = sbc.parse();
     }
     LOGGER.info("Successfully parsed csv file: {}", csvFile.getFileName().toString());
 
     // clear the module names
-    results.forEach(
+    naiveUpdateSteps.forEach(
         y -> {
           String resultProjectName = y.getProjectName();
           if (resultProjectName.contains("projectRun")) {
@@ -143,8 +143,8 @@ public class MainComputeUpdateSuggestion {
           }
         });
 
-    final Map<String, List<Result>> groupByModuleName =
-        results.stream().collect(groupingBy(Result::getProjectName));
+    final Map<String, List<NaiveUpdateStep>> groupByModuleName =
+        naiveUpdateSteps.stream().collect(groupingBy(NaiveUpdateStep::getProjectName));
 
     LOGGER.info("Running on project: {}", projectName);
 
@@ -176,7 +176,7 @@ public class MainComputeUpdateSuggestion {
     // handle the modules
     List<UpdateSuggestion> aggResults = new ArrayList<>();
 
-    for (Map.Entry<String, List<Result>> module : groupByModuleName.entrySet()) {
+    for (Map.Entry<String, List<NaiveUpdateStep>> module : groupByModuleName.entrySet()) {
       try {
 
         aggResults.addAll(
@@ -208,10 +208,10 @@ public class MainComputeUpdateSuggestion {
       String csvFile,
       String outputDir,
       String moduleName,
-      List<Result> results)
+      List<NaiveUpdateStep> naiveUpdateSteps)
       throws IOException {
     return runOnModule(
-        mavenInvokerProject, Paths.get(csvFile), Paths.get(outputDir), moduleName, results);
+        mavenInvokerProject, Paths.get(csvFile), Paths.get(outputDir), moduleName, naiveUpdateSteps);
   }
 
   public static List<UpdateSuggestion> runOnModule(
@@ -219,7 +219,7 @@ public class MainComputeUpdateSuggestion {
       Path csvFile,
       Path outputDir,
       String moduleName,
-      List<Result> results)
+      List<NaiveUpdateStep> naiveUpdateSteps)
       throws IOException {
 
     LOGGER.info("Running on project - module: {}", moduleName);
@@ -265,14 +265,14 @@ public class MainComputeUpdateSuggestion {
       return Collections.emptyList();
     }
 
-    final List<Result> filteredResults =
-        results.stream()
+    final List<NaiveUpdateStep> filteredNaiveUpdateSteps =
+        naiveUpdateSteps.stream()
             .filter(
                 x -> StringUtils.isNotBlank(x.getOrgGav()) && StringUtils.isNotBlank(x.getNewGav()))
             .collect(Collectors.toList());
 
-    LOGGER.debug("Filtered results size: {}", filteredResults.size());
-    if (filteredResults.isEmpty()) {
+    LOGGER.debug("Filtered results size: {}", filteredNaiveUpdateSteps.size());
+    if (filteredNaiveUpdateSteps.isEmpty()) {
       LOGGER.info("Filtered results empty, skipping");
       // skip this module, but not the whole project
       return Collections.emptyList();
@@ -285,12 +285,12 @@ public class MainComputeUpdateSuggestion {
       return Collections.emptyList();
     }
     List<UpdateSuggestion> aggResults = new ArrayList<>();
-    for (Result result : filteredResults) {
+    for (NaiveUpdateStep naiveUpdateStep : filteredNaiveUpdateSteps) {
 
       try {
 
         final List<UpdateSuggestion> updateSuggestion =
-            recommendationAlgorithm.run(result.getOrgGav(), result.getNewGav());
+            recommendationAlgorithm.run(naiveUpdateStep.getOrgGav(), naiveUpdateStep.getNewGav());
         // set the project name for the update suggestion
         updateSuggestion.forEach(x -> x.setProjectName(moduleName));
         // add to the result set

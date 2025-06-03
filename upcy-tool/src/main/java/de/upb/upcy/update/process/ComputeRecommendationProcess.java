@@ -10,8 +10,8 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import de.upb.upcy.base.build.Utils;
 import de.upb.upcy.base.commons.JavaProcess;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
+import de.upb.upcy.update.build.NaiveUpdateStep;
 import de.upb.upcy.update.build.PipelineRunner;
-import de.upb.upcy.update.build.Result;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -61,19 +61,19 @@ public class ComputeRecommendationProcess {
 
     final String projectName = parent.getFileName().toString();
 
-    List<Result> results;
+    List<NaiveUpdateStep> naiveUpdateSteps;
     try (Reader reader = Files.newBufferedReader(csvFile)) {
-      CsvToBean<Result> sbc =
-          new CsvToBeanBuilder<Result>(reader)
-              .withType(Result.class)
+      CsvToBean<NaiveUpdateStep> sbc =
+          new CsvToBeanBuilder<NaiveUpdateStep>(reader)
+              .withType(NaiveUpdateStep.class)
               .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
               .build();
-      results = sbc.parse();
+      naiveUpdateSteps = sbc.parse();
     }
     LOGGER.info("Successfully parsed csv file: {}", csvFile.getFileName().toString());
 
     // clear the module names
-    results.forEach(
+    naiveUpdateSteps.forEach(
         y -> {
           String resultProjectName = y.getProjectName();
           if (resultProjectName.contains("projectRun")) {
@@ -88,8 +88,8 @@ public class ComputeRecommendationProcess {
           }
         });
 
-    final Map<String, List<Result>> groupByModuleName =
-        results.stream().collect(groupingBy(Result::getProjectName));
+    final Map<String, List<NaiveUpdateStep>> groupByModuleName =
+        naiveUpdateSteps.stream().collect(groupingBy(NaiveUpdateStep::getProjectName));
 
     LOGGER.info("Running on project: {}", projectName);
 
@@ -118,7 +118,7 @@ public class ComputeRecommendationProcess {
     // the project/module names and the associated maveninvokerproject
     final Map<String, MavenInvokerProject> run = pipelineRunner.run();
 
-    for (Map.Entry<String, List<Result>> module : groupByModuleName.entrySet()) {
+    for (Map.Entry<String, List<NaiveUpdateStep>> module : groupByModuleName.entrySet()) {
 
       try {
         final Path resFile = Files.createTempFile("resFile", "json");
@@ -126,7 +126,7 @@ public class ComputeRecommendationProcess {
         RecommendationModuleProcess.InputParameter inputParameter =
             new RecommendationModuleProcess.InputParameter();
         inputParameter.setCsvFile(csvFile.toAbsolutePath().toString());
-        inputParameter.setResults(module.getValue());
+        inputParameter.setNaiveUpdateSteps(module.getValue());
         inputParameter.setOutputDir(outputDir.toAbsolutePath().toString());
         inputParameter.setModuleName(module.getKey());
         inputParameter.setMavenInvokerProject(run.get(module.getKey()));
