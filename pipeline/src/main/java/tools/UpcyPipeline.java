@@ -7,7 +7,7 @@ import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
-import de.upb.upcy.pipeline.AbstractToolRun;
+import de.upb.upcy.pipeline.ToolPipeline;
 import de.upb.upcy.update.MainComputeUpdateSuggestion;
 import de.upb.upcy.update.build.NaiveUpdateStep;
 import de.upb.upcy.update.build.PipelineRunner;
@@ -21,11 +21,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UpcyRun extends AbstractToolRun {
+public class UpcyPipeline extends ToolPipeline {
 
 
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(UpcyRun.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(UpcyPipeline.class);
 
   public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
