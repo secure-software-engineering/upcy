@@ -41,21 +41,24 @@ public class OsvProceeding {
     this.filterAfter = filterAfter;
     dataPath = rootPath + "/maven";
     this.aggregatedDataFile = rootPath + "/aggregated_data.json";
-
+    this.coralFile = rootPath + "/vul_edges_unique.csv";
   }
 
-  public void initOsvData(boolean update) {
 
-    if (update == false) {
-      File dataFile = new File(aggregatedDataFile);
-      if (dataFile.exists()) {
-        return;
-      }
-      throw new IllegalArgumentException("Could not find aggregated data file OSV");
+  public static void main(String[] args) throws IOException, ParseException {
+
+    if (args.length < 1) {
+      System.err.println("No arguments given");
+      return;
     }
-
-    downloadOsvDatabase();
+    String osvDataFolder = args[0];
+    OsvProceeding osvProceeding = new OsvProceeding(osvDataFolder,
+        Instant.parse("2024-01-01T00:00:00Z"));
+    osvProceeding.downloadOsvDatabase();
+    osvProceeding.createAggregateDataFile4Goblin();
+    osvProceeding.createInput4Coral();
   }
+
 
   public String createAggregateDataFile4Goblin() {
     Map<String, JSONArray> aggregatedData = new HashMap<>();
@@ -165,6 +168,7 @@ public class OsvProceeding {
 
 
   public Path createInput4Coral() throws IOException {
+    System.out.println("Create coral file");
     List<String> cveEntires = new ArrayList<>();
 
     String header = ":START_ID(Vulnerability),:END_ID(Version),:TYPE";

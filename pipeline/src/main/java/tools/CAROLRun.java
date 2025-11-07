@@ -1,5 +1,3 @@
 package tools;
 
-public class CAROLRun {
-
-}
+public class CAROLRun {}

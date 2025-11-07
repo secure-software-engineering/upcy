@@ -5,8 +5,6 @@ import static java.util.stream.Collectors.groupingBy;
 import com.opencsv.CSVWriter;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import de.upb.upcy.base.build.Utils;
-import de.upb.upcy.update.build.NaiveUpdateStep;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -21,15 +19,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.maven.project.MavenProject;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.PipelineTool;
-
 
 /**
  * Main class for running the evaluation experiments. Requires as an input the folder containing the
@@ -44,24 +41,21 @@ public class ToolPipeline {
   private final Path resultsDir;
   private final PipelineTool tool;
 
-
   public ToolPipeline(Path benchmark_updatesteps_folder, Path resultsDir, PipelineTool tool) {
     this.benchmark_updatesteps_folder = benchmark_updatesteps_folder;
     this.resultsDir = resultsDir;
     this.tool = tool;
   }
 
-
-  private void execute() throws IOException {
+  public void execute() throws IOException {
     List<Path> updateStepCSVForProjects = this.getUpdateStepCSVFiles(benchmark_updatesteps_folder);
 
     String toolName = tool.getName();
     Path toolsOutputFolder = resultsDir.resolve(toolName);
     Set<Path> benchmarkProjects = new HashSet<>();
-    try (Stream<Path> stream = Files.list(this.resultsDir)) {
-      benchmarkProjects = stream
-          .filter(file -> Files.isDirectory(file))
-          .collect(Collectors.toSet());
+    try (Stream<Path> stream = Files.list(this.benchmark_updatesteps_folder)) {
+      benchmarkProjects =
+          stream.filter(file -> Files.isDirectory(file)).collect(Collectors.toSet());
     }
     // run
     for (Path benchmarkProject : benchmarkProjects) {
@@ -70,8 +64,14 @@ public class ToolPipeline {
       tool_project_outputfolder.toFile().mkdirs();
 
       Path doneIndicatorFile = tool_project_outputfolder.resolve("DONE");
+      Path failedIndicatorFile = tool_project_outputfolder.resolve("FAILED");
+
       if (Files.exists(doneIndicatorFile)) {
         LOGGER.info("Project {} already completed", tool_project_outputfolder);
+        continue;
+      }
+      if (Files.exists(failedIndicatorFile)) {
+        LOGGER.info("Project {} already failed", tool_project_outputfolder);
         continue;
       }
 
@@ -87,9 +87,11 @@ public class ToolPipeline {
       }
       String commit = Files.lines(commitFile).findFirst().orElse("").trim();
 
-      Path csvFile = Files.list(benchmarkProject)
-          .filter(x -> StringUtils.endsWith(x.getFileName().toString(), "_update-steps.csv"))
-          .findFirst().orElse(null);
+      Path csvFile =
+          Files.list(benchmarkProject)
+              .filter(x -> StringUtils.endsWith(x.getFileName().toString(), "_update-steps.csv"))
+              .findFirst()
+              .orElse(null);
       if (csvFile == null) {
         LOGGER.error("Could not find UpdateStep file in {}", benchmarkProject);
       }
@@ -99,19 +101,24 @@ public class ToolPipeline {
       try {
         // checkout project and commit from benchmark
 
-        Path checkedoutProject = checkoutProject(repoUrl, commit);
-        runToolOnProject(checkedoutProject, csvFile, parentDir);
+        Path clonedProject = checkoutProject(repoUrl, commit);
+        runToolOnProject(clonedProject, csvFile, tool_project_outputfolder);
 
         Files.createFile(doneIndicatorFile);
-        Files.write(doneIndicatorFile, "DONE".getBytes(StandardCharsets.UTF_8));
 
         // reset repo
-        Utils.resetRepo(checkedoutProject);
+        Utils.resetRepo(clonedProject);
+        Files.writeString(doneIndicatorFile, "DONE");
 
-      } catch (IOException e) {
-        LOGGER.error("Failed to handle file: " + parentDir.getFileName(), e);
-      } catch (GitAPIException e) {
-        LOGGER.error("Failed to Checkout project {} with", parentDir.getFileName(), e);
+      } catch (Exception e) {
+
+        LOGGER.error(
+            "Failed to execute tool {} on project {} with",
+            tool.getName(),
+            benchmarkProject.getFileName(),
+            e);
+        Files.writeString(failedIndicatorFile, e.getMessage());
+
       }
     }
 
@@ -133,7 +140,7 @@ public class ToolPipeline {
           .filter(p -> p.toFile().isFile())
           .forEach(
               f -> {
-                //FIXME: more specific
+                // FIXME: more specific
                 if (StringUtils.endsWith(f.getFileName().toString(), "_update-steps.csv")) {
                   // ignore graph analysis csv file
                   updateStepCSVForProjects.add(f);
@@ -162,12 +169,9 @@ public class ToolPipeline {
     return Pair.of(doneProjects, statusCacheFolder);
   }
 
-
   private Path checkoutProject(String owner, String repoName, String commitId)
       throws GitAPIException, IOException {
-    String repoUrl =
-        String.format(
-            "https://github.com/%s/%s.git", owner, repoName);
+    String repoUrl = String.format("https://github.com/%s/%s.git", owner, repoName);
     return checkoutProject(repoUrl, commitId);
   }
 
@@ -176,11 +180,7 @@ public class ToolPipeline {
     return Utils.checkOutRepo(repoUrl, commitId);
   }
 
-  public void runToolOnProject(Path projectDir, Path csvFile, Path outputDir)
-      throws Exception {
-    final Path parent = csvFile.getParent();
-
-    final String projectName = parent.getFileName().toString();
+  public void runToolOnProject(Path projectDir, Path csvFile, Path outputDir) throws Exception {
 
     List<NaiveUpdateStep> results;
     try (Reader reader = Files.newBufferedReader(csvFile)) {
@@ -196,13 +196,18 @@ public class ToolPipeline {
     final Map<String, List<NaiveUpdateStep>> naiveUpdateStepsPerModule =
         results.stream().collect(groupingBy(NaiveUpdateStep::getProjectName));
 
+    MavenProject mavenProject = PomFileUtil.readPom(projectDir.resolve("pom.xml"));
+    String projectName =
+        mavenProject.getArtifactId()
+            + ":"
+            + mavenProject.getGroupId()
+            + ":"
+            + mavenProject.getVersion();
+
     LOGGER.info("Running on project: {}", projectName);
     // prepare for tool, e.g., choose dependency to update
 
     // run tool
     this.tool.runTool(projectDir, projectName, csvFile, outputDir, naiveUpdateStepsPerModule);
-
   }
-
-
 }

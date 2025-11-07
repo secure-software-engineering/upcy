@@ -211,7 +211,11 @@ public class MainComputeUpdateSuggestion {
       List<NaiveUpdateStep> naiveUpdateSteps)
       throws IOException {
     return runOnModule(
-        mavenInvokerProject, Paths.get(csvFile), Paths.get(outputDir), moduleName, naiveUpdateSteps);
+        mavenInvokerProject,
+        Paths.get(csvFile),
+        Paths.get(outputDir),
+        moduleName,
+        naiveUpdateSteps);
   }
 
   public static List<UpdateSuggestion> runOnModule(
