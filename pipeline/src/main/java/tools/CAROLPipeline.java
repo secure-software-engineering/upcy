@@ -1,28 +1,22 @@
 package tools;
 
-import client.ClientLPGA;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
 import de.upb.upcy.base.mvn.IOUtils;
 import de.upb.upcy.base.mvn.MavenInvokerProject.BuildToolException;
-import de.upb.upcy.pipeline.Main;
 import de.upb.upcy.pipeline.NaiveUpdateStep;
 import de.upb.upcy.pipeline.Utils;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GoblinPipeline implements PipelineTool {
+public class CAROLPipeline implements PipelineTool {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(GoblinPipeline.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(CAROLPipeline.class);
 
   @Override
   public void runTool(
@@ -40,7 +34,11 @@ public class GoblinPipeline implements PipelineTool {
       Files.createDirectories(outputDir);
     }
 
-    JsonNode dockerNetworkBy = Utils.getDockerNetworkBy("goblin-net");
+
+    // find the jar file
+    String jarfilelocation = "";
+
+    JsonNode dockerNetworkBy = Utils.getDockerNetworkBy("coral-net");
     if (dockerNetworkBy == null) {
       throw new RuntimeException("Could not find docker network");
     }
@@ -48,10 +46,12 @@ public class GoblinPipeline implements PipelineTool {
 
     String[] bashCmd =
         new String[]{
-            "docker", "run", "-e", "LOGFILE=" + projectNameClear, "--rm",
+            "docker", "run", "-e", "SEMSERVER_HOST=coral-semserver", "-e",
+            "MONGO_HOST=coral-mongodb", "--rm",
             "--network=" + dockerNetwork, "-v",
-            outputDir.toAbsolutePath().toString() + ":/var/log/", "-v",
-            projectDir.toAbsolutePath().toString() + ":/app/", "ghcr.io/anddann/goblinupdater:1.0.0"
+            outputDir.toAbsolutePath().toString() + ":/usr/src/app/remediation_results/", "-v",
+            projectDir.toAbsolutePath().toString() + ":/app/",
+            "ghcr.io/anddann/goblinupdater:1.0.0", "/app/", "/app/" + jarfilelocation
         };
 
     LOGGER.info(

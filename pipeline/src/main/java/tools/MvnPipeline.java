@@ -41,9 +41,10 @@ public class MvnPipeline {
       List<InvokerProjectResult> run = mvnPipeline.run();
       for (InvokerProjectResult entry : run) {
         // write the log to a file
-        Path logFile = outputDir.resolve(entry.projectName + ".log");
+        String projectNameClear = entry.projectName.replaceAll(":", "_");
+        Path logFile = outputDir.resolve(projectNameClear + ".log");
         Files.writeString(logFile, entry.invocationResult.getMiddle());
-        Path errorLogFile = outputDir.resolve(entry.projectName + ".err");
+        Path errorLogFile = outputDir.resolve(projectNameClear + ".err");
         Files.writeString(errorLogFile, entry.invocationResult.getRight());
       }
     }

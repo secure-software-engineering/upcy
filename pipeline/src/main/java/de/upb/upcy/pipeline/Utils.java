@@ -1,13 +1,18 @@
 package de.upb.upcy.pipeline;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.upb.upcy.base.mvn.IOUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public class Utils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
+
+  public static final ObjectMapper MAPPER = new ObjectMapper();
 
   public static Pair<String, String> getRepoAndCommit(Path commitFile) throws IOException {
     String repoUrl =
@@ -64,5 +71,30 @@ public class Utils {
     }
 
     return foundCommitFiles;
+  }
+
+
+  public static JsonNode getDockerNetworkBy(String name)
+      throws IOException, ExecutionException, InterruptedException {
+    //docker network ls --format json --filter name=goblin-net
+    String out;
+
+    String[] bashCmd =
+        new String[]{
+            "docker", "network", "ls", "--format", "json", "--filter", "name=" + name
+        };
+    ProcessBuilder processBuilder = new ProcessBuilder(bashCmd);
+
+    final Triple<Integer, String, String> processRetCodeOutErr =
+        IOUtils.awaitTermination(processBuilder.start(), -1);
+
+    int exitCode = processRetCodeOutErr.getLeft();
+    String output = processRetCodeOutErr.getMiddle();
+    String error = processRetCodeOutErr.getRight();
+    if (exitCode == 0) {
+      JsonNode jsonNode = MAPPER.readTree(output);
+      return jsonNode;
+    }
+    throw new IOException("Could not find network, error: " + error);
   }
 }

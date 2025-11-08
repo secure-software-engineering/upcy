@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.GoblinPipeline;
 import tools.MvnPipeline.MavenPipelineTool;
 
 public class Main {
@@ -27,8 +28,11 @@ public class Main {
     String rootDir = args[0];
     String workingDirectory = args[1];
 
+//    ToolPipeline pipelineTool =
+//        new ToolPipeline(Paths.get(rootDir), Paths.get(workingDirectory), new MavenPipelineTool());
+
     ToolPipeline pipelineTool =
-        new ToolPipeline(Paths.get(rootDir), Paths.get(workingDirectory), new MavenPipelineTool());
+        new ToolPipeline(Paths.get(rootDir), Paths.get(workingDirectory), new GoblinPipeline());
 
     pipelineTool.execute();
   }
