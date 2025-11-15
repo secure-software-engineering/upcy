@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public class MavenOutputParser {
 
   public static class TestResult {
-
+    @CsvBindByName(column = "testsRun")
     private int testsRun;
     @CsvBindByName(column = "failures")
     private int failures;
@@ -266,7 +266,7 @@ public class MavenOutputParser {
   }
 
 
-  public static void writeResultsToCsv(String filePath, List<BuildResult> persons)
+  public static void writeResultsToCsv(String filePath, List<BuildResult> buildResultList)
       throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
 
     try (FileWriter writer = new FileWriter(filePath)) {
@@ -274,7 +274,7 @@ public class MavenOutputParser {
           .withApplyQuotesToAll(false) // optional
           .build();
 
-      beanToCsv.write(persons);
+      beanToCsv.write(buildResultList);
     }
   }
 
@@ -289,23 +289,29 @@ public class MavenOutputParser {
       } else {
         throw new IllegalArgumentException("Missing project path");
       }
-      Path resultsFolder = Paths.get(projectPath).resolve("MavenBuildAndTest");
+      String mavenBuildAndTest = "MavenBuildAndTest";
+      Path resultsFolder = Paths.get(projectPath).resolve(mavenBuildAndTest);
       Set<Path> logfiles = new HashSet<>();
       // find the files
-      try (Stream<Path> stream = Files.list(resultsFolder)) {
+      try (Stream<Path> stream = Files.walk(resultsFolder)) {
         logfiles =
-            stream.filter(file -> Files.isRegularFile(file) && file.endsWith(".log"))
+            stream.filter(file -> Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
                 .collect(Collectors.toSet());
       }
-
+      List<BuildResult> buildResultList = new ArrayList<>();
       for (Path logfile : logfiles) {
         BuildResult buildResult = parseMavenOutput(Files.readString(logfile));
         buildResult.setProjectName(logfile.getFileName().toString().replace("/", ":"));
+        buildResultList.add(buildResult);
       }
+
+      writeResultsToCsv(
+          Paths.get(projectPath).resolve("results_" + mavenBuildAndTest + ".csv").toAbsolutePath()
+              .toString(), buildResultList);
 
 
     } catch (Exception e) {
-      System.err.println("Error executing Maven command: " + e.getMessage());
+      System.err.println("Error " + e.getMessage());
       e.printStackTrace();
       System.exit(1);
     }
