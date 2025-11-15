@@ -8,8 +8,11 @@ import de.upb.upcy.pipeline.NaiveUpdateStep;
 import de.upb.upcy.pipeline.Utils;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +37,28 @@ public class CAROLPipeline implements PipelineTool {
       Files.createDirectories(outputDir);
     }
 
-
     // find the jar file
-    String jarfilelocation = "";
+    String jarfilelocation = null;
+    List<Path> jars;
+    try (Stream<Path> s = Files.walk(outputDir.resolve("target"))) {
+      jars = s.filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".jar"))
+          .collect(Collectors.toList());
+    }
+
+    if (jars.isEmpty()) {
+      throw new IllegalArgumentException("Could not find jar file");
+    }
+    if (jars.size() > 1) {
+      throw new IllegalArgumentException("Multiple jar files found");
+    }
+
+    jarfilelocation = jars.get(0).toAbsolutePath().toString();
 
     JsonNode dockerNetworkBy = Utils.getDockerNetworkBy("coral-net");
     if (dockerNetworkBy == null) {
       throw new RuntimeException("Could not find docker network");
     }
-    String dockerNetwork = dockerNetworkBy.get("name").asText();
+    String dockerNetwork = dockerNetworkBy.get("Name").asText();
 
     String[] bashCmd =
         new String[]{

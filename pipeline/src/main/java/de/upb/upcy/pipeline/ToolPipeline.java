@@ -17,6 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +43,7 @@ public class ToolPipeline {
   private final Path benchmark_updatesteps_folder;
   private final Path resultsDir;
   private final PipelineTool tool;
+  private final ExecutorService pool = Executors.newFixedThreadPool(4);
 
   public ToolPipeline(Path benchmark_updatesteps_folder, Path resultsDir, PipelineTool tool) {
     this.benchmark_updatesteps_folder = benchmark_updatesteps_folder;
@@ -102,33 +106,51 @@ public class ToolPipeline {
         // checkout project and commit from benchmark
 
         Path clonedProject = checkoutProject(repoUrl, commit);
-        runToolOnProject(clonedProject, csvFile, tool_project_outputfolder);
+        pool.submit(() -> {
+          System.out.println("Running task...");
+          try {
+            runToolOnProject(clonedProject, csvFile, tool_project_outputfolder);
+            Files.createFile(doneIndicatorFile);
 
-        Files.createFile(doneIndicatorFile);
+            // reset repo
+            Utils.resetRepo(clonedProject);
+            Files.writeString(doneIndicatorFile, "DONE");
+          } catch (Exception e) {
+            LOGGER.error(
+                "Failed to execute tool {} on project {} with",
+                tool.getName(),
+                benchmarkProject.getFileName(),
+                e);
+            try {
+              Files.writeString(failedIndicatorFile, e.getMessage());
+            } catch (IOException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
 
-        // reset repo
-        Utils.resetRepo(clonedProject);
-        Files.writeString(doneIndicatorFile, "DONE");
+        });
+
 
       } catch (Exception e) {
+        LOGGER.error("Failed to checkout file");
 
-        LOGGER.error(
-            "Failed to execute tool {} on project {} with",
-            tool.getName(),
-            benchmarkProject.getFileName(),
-            e);
-        Files.writeString(failedIndicatorFile, e.getMessage());
 
       }
     }
+    LOGGER.info("Waiting for jobs to finish...");
+    shutdownAndAwaitTermination(this.pool);
+  }
 
-    // run in docker container with java installed
-
-    // reset project
-    // git reset --hard
-    // git clean -df
-
-    // run next tool
+  void shutdownAndAwaitTermination(ExecutorService executorService) {
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(60, TimeUnit.DAYS)) {
+        executorService.shutdownNow();
+      }
+    } catch (InterruptedException ie) {
+      executorService.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 
   private static @NotNull List<Path> getUpdateStepCSVFiles(Path benchmarkRootDir)

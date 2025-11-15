@@ -44,7 +44,7 @@ public class GoblinPipeline implements PipelineTool {
     if (dockerNetworkBy == null) {
       throw new RuntimeException("Could not find docker network");
     }
-    String dockerNetwork = dockerNetworkBy.get("name").asText();
+    String dockerNetwork = dockerNetworkBy.get("Name").asText();
 
     String[] bashCmd =
         new String[]{

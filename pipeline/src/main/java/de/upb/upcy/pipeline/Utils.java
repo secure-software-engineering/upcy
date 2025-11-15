@@ -3,7 +3,9 @@ package de.upb.upcy.pipeline;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.upb.upcy.base.mvn.IOUtils;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -85,12 +87,23 @@ public class Utils {
         };
     ProcessBuilder processBuilder = new ProcessBuilder(bashCmd);
 
-    final Triple<Integer, String, String> processRetCodeOutErr =
-        IOUtils.awaitTermination(processBuilder.start(), -1);
+    processBuilder.redirectErrorStream(true);
+    Process process = processBuilder.start();
 
-    int exitCode = processRetCodeOutErr.getLeft();
-    String output = processRetCodeOutErr.getMiddle();
-    String error = processRetCodeOutErr.getRight();
+    BufferedReader reader = new BufferedReader(
+        new InputStreamReader(process.getInputStream())
+    );
+
+    String line;
+    String output = "";
+    while ((line = reader.readLine()) != null) {
+      output += line;
+    }
+
+    int exit = process.waitFor();
+
+    int exitCode = exit;
+    String error = null;
     if (exitCode == 0) {
       JsonNode jsonNode = MAPPER.readTree(output);
       return jsonNode;

@@ -46,7 +46,6 @@ public class OsvProceeding {
 
 
   public static void main(String[] args) throws IOException, ParseException {
-
     if (args.length < 1) {
       System.err.println("No arguments given");
       return;
