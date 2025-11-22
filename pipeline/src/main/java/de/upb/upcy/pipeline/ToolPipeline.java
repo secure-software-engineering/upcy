@@ -106,35 +106,30 @@ public class ToolPipeline {
         // checkout project and commit from benchmark
 
         Path clonedProject = checkoutProject(repoUrl, commit);
-        pool.submit(() -> {
-          System.out.println("Running task...");
-          try {
-            runToolOnProject(clonedProject, csvFile, tool_project_outputfolder);
-            Files.createFile(doneIndicatorFile);
+        pool.submit(
+            () -> {
+              System.out.println("Running task...");
+              try {
+                runToolOnProject(clonedProject, csvFile, tool_project_outputfolder);
+                // reset repo
+                Utils.resetRepo(clonedProject);
+                Files.writeString(doneIndicatorFile, "DONE");
+              } catch (Exception e) {
+                LOGGER.error(
+                    "Failed to execute tool {} on project {} with",
+                    tool.getName(),
+                    benchmarkProject.getFileName(),
+                    e);
+                try {
+                  Files.writeString(failedIndicatorFile, e.getMessage());
+                } catch (IOException ex) {
 
-            // reset repo
-            Utils.resetRepo(clonedProject);
-            Files.writeString(doneIndicatorFile, "DONE");
-          } catch (Exception e) {
-            LOGGER.error(
-                "Failed to execute tool {} on project {} with",
-                tool.getName(),
-                benchmarkProject.getFileName(),
-                e);
-            try {
-              Files.writeString(failedIndicatorFile, e.getMessage());
-            } catch (IOException ex) {
-              throw new RuntimeException(ex);
-            }
-          }
-
-        });
-
+                }
+              }
+            });
 
       } catch (Exception e) {
         LOGGER.error("Failed to checkout file");
-
-
       }
     }
     LOGGER.info("Waiting for jobs to finish...");
@@ -220,9 +215,9 @@ public class ToolPipeline {
 
     MavenProject mavenProject = PomFileUtil.readPom(projectDir.resolve("pom.xml"));
     String projectName =
-        mavenProject.getArtifactId()
+        mavenProject.getGroupId()
             + ":"
-            + mavenProject.getGroupId()
+            + mavenProject.getArtifactId()
             + ":"
             + mavenProject.getVersion();
 

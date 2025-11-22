@@ -2,7 +2,6 @@ package de.upb.upcy.pipeline;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.upb.upcy.base.mvn.IOUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,7 +13,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -75,24 +73,19 @@ public class Utils {
     return foundCommitFiles;
   }
 
-
   public static JsonNode getDockerNetworkBy(String name)
       throws IOException, ExecutionException, InterruptedException {
-    //docker network ls --format json --filter name=goblin-net
+    // docker network ls --format json --filter name=goblin-net
     String out;
 
     String[] bashCmd =
-        new String[]{
-            "docker", "network", "ls", "--format", "json", "--filter", "name=" + name
-        };
+        new String[] {"docker", "network", "ls", "--format", "json", "--filter", "name=" + name};
     ProcessBuilder processBuilder = new ProcessBuilder(bashCmd);
 
     processBuilder.redirectErrorStream(true);
     Process process = processBuilder.start();
 
-    BufferedReader reader = new BufferedReader(
-        new InputStreamReader(process.getInputStream())
-    );
+    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
     String line;
     String output = "";

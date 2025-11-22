@@ -1,21 +1,15 @@
 package tools;
 
-import client.ClientLPGA;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
 import de.upb.upcy.base.mvn.IOUtils;
 import de.upb.upcy.base.mvn.MavenInvokerProject.BuildToolException;
-import de.upb.upcy.pipeline.Main;
 import de.upb.upcy.pipeline.NaiveUpdateStep;
 import de.upb.upcy.pipeline.Utils;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +41,18 @@ public class GoblinPipeline implements PipelineTool {
     String dockerNetwork = dockerNetworkBy.get("Name").asText();
 
     String[] bashCmd =
-        new String[]{
-            "docker", "run", "-e", "LOGFILE=" + projectNameClear, "--rm",
-            "--network=" + dockerNetwork, "-v",
-            outputDir.toAbsolutePath().toString() + ":/var/log/", "-v",
-            projectDir.toAbsolutePath().toString() + ":/app/", "ghcr.io/anddann/goblinupdater:1.0.0"
+        new String[] {
+          "docker",
+          "run",
+          "-e",
+          "LOGFILE=" + projectNameClear,
+          "--rm",
+          "--network=" + dockerNetwork,
+          "-v",
+          outputDir.toAbsolutePath().toString() + ":/var/log/",
+          "-v",
+          projectDir.toAbsolutePath().toString() + ":/app/",
+          "ghcr.io/anddann/goblinupdater:1.0.0"
         };
 
     LOGGER.info(
@@ -71,20 +72,16 @@ public class GoblinPipeline implements PipelineTool {
     if (exitCode == IOUtils.TIMEOUT_EXITCODE) {
       throw new BuildToolException(
           String.format(
-              "The Maven process timed out when executing '%s'.\nStdout: %s\nStderr: %s",
-              Joiner.on(" ").join(bashCmd),
-              output,
-              error), null);
+              "Process timed out when executing '%s'.\nStdout: %s\nStderr: %s",
+              Joiner.on(" ").join(bashCmd), output, error),
+          null);
     } else if (exitCode != 0) {
       throw new BuildToolException(
           String.format(
-              "Maven returned a non-zero exit code %d when executing '%s'.\nStdout: %s\nStderr: %s",
-              exitCode, Joiner.on(" ").join(bashCmd),
-              output,
-              error), null);
+              "Process returned a non-zero exit code %d when executing '%s'.\nStdout: %s\nStderr: %s",
+              exitCode, Joiner.on(" ").join(bashCmd), output, error),
+          null);
     }
-
-
   }
 
   @Override

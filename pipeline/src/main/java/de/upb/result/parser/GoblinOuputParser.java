@@ -1,10 +1,10 @@
 package de.upb.result.parser;
 
+import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
 import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
-import de.upb.result.parser.MavenOutputParser.BuildResult;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -24,9 +24,11 @@ import java.util.stream.Stream;
 public class GoblinOuputParser {
 
   public static class GoblinUpdateEdge {
-
+    @CsvBindByName(column = "startNode")
     private String startNode;
+    @CsvBindByName(column = "targetNode")
     private String targetNode;
+    @CsvBindByName(column = "projectName")
     private String projectName;
 
     public GoblinUpdateEdge(String startNode, String targetNode) {
@@ -81,10 +83,10 @@ public class GoblinOuputParser {
       throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
 
     try (FileWriter writer = new FileWriter(filePath)) {
-      StatefulBeanToCsv<GoblinUpdateEdge> beanToCsv = new StatefulBeanToCsvBuilder<GoblinUpdateEdge>(
-          writer)
-          .withApplyQuotesToAll(false) // optional
-          .build();
+      StatefulBeanToCsv<GoblinUpdateEdge> beanToCsv =
+          new StatefulBeanToCsvBuilder<GoblinUpdateEdge>(writer)
+              .withApplyQuotesToAll(false) // optional
+              .build();
 
       beanToCsv.write(updateEdgeList);
     }
@@ -107,8 +109,10 @@ public class GoblinOuputParser {
       // find the files
       try (Stream<Path> stream = Files.walk(resultsFolder)) {
         logfiles =
-            stream.filter(
-                    file -> Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
+            stream
+                .filter(
+                    file ->
+                        Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
                 .collect(Collectors.toSet());
       }
       List<GoblinUpdateEdge> buildResultList = new ArrayList<>();
@@ -120,9 +124,11 @@ public class GoblinOuputParser {
       }
 
       writeResultsToCsv(
-          Paths.get(projectPath).resolve("results_" + goblinUpdater + ".csv").toAbsolutePath()
-              .toString(), buildResultList);
-
+          Paths.get(projectPath)
+              .resolve("results_" + goblinUpdater + ".csv")
+              .toAbsolutePath()
+              .toString(),
+          buildResultList);
 
     } catch (Exception e) {
       System.err.println("Error " + e.getMessage());
@@ -130,6 +136,4 @@ public class GoblinOuputParser {
       System.exit(1);
     }
   }
-
-
 }

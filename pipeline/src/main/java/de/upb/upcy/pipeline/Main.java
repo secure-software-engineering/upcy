@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.CAROLPipeline;
+import tools.CoralPipeline;
 import tools.GoblinPipeline;
 import tools.MvnPipeline.MavenPipelineTool;
 import tools.PipelineTool;
@@ -15,17 +15,20 @@ public class Main {
 
   private static Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-
   public static PipelineTool chooseTool(String toolname) {
     switch (toolname.toLowerCase()) {
       case "maven":
+        LOGGER.info("Choose Maven Tool");
         return new MavenPipelineTool();
       case "mvn":
+        LOGGER.info("Choose Maven Tool");
         return new MavenPipelineTool();
       case "goblin":
+        LOGGER.info("Choose Goblin Tool");
         return new GoblinPipeline();
-      case "carol":
-        return new CAROLPipeline();
+      case "coral":
+        LOGGER.info("Choose Coral Tool");
+        return new CoralPipeline();
       default:
         throw new IllegalArgumentException("Unknown toolname: " + toolname);
     }
@@ -39,7 +42,7 @@ public class Main {
         "Config file: " + ctx.getConfiguration().getConfigurationSource().getLocation());
     System.out.println("Root logger level: " + ctx.getConfiguration().getRootLogger().getLevel());
 
-    if (args.length < 4) {
+    if (args.length < 3) {
       LOGGER.error("No arguments given");
       return;
     }

@@ -8,18 +8,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.json.simple.JSONArray;
@@ -33,7 +30,8 @@ public class OsvProceeding {
   private final Instant filterAfter;
   private final String dataPath;
   public final String aggregatedDataFile;
-  private static final String OSV_DATA_URL = "https://storage.googleapis.com/osv-vulnerabilities/Maven/all.zip";
+  private static final String OSV_DATA_URL =
+      "https://storage.googleapis.com/osv-vulnerabilities/Maven/all.zip";
   private String coralFile;
 
   public OsvProceeding(String osvDataFolder, Instant filterAfter) {
@@ -44,20 +42,18 @@ public class OsvProceeding {
     this.coralFile = rootPath + "/vul_edges_unique.csv";
   }
 
-
   public static void main(String[] args) throws IOException, ParseException {
     if (args.length < 1) {
       System.err.println("No arguments given");
       return;
     }
     String osvDataFolder = args[0];
-    OsvProceeding osvProceeding = new OsvProceeding(osvDataFolder,
-        Instant.parse("2024-01-01T00:00:00Z"));
+    OsvProceeding osvProceeding =
+        new OsvProceeding(osvDataFolder, Instant.parse("2024-01-01T00:00:00Z"));
     osvProceeding.downloadOsvDatabase();
     osvProceeding.createAggregateDataFile4Goblin();
     osvProceeding.createInput4Coral();
   }
-
 
   public String createAggregateDataFile4Goblin() {
     Map<String, JSONArray> aggregatedData = new HashMap<>();
@@ -70,24 +66,33 @@ public class OsvProceeding {
           JSONParser parser = new JSONParser();
           JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
           JSONObject cveObject = new JSONObject();
-          String published = jsonObject.get("published") == null ? "UNKNOWN"
-              : jsonObject.get("published").toString();
+          String published =
+              jsonObject.get("published") == null
+                  ? "UNKNOWN"
+                  : jsonObject.get("published").toString();
           // filter
           Instant parse = Instant.parse(published);
           if (parse.isAfter(filterAfter)) {
             continue;
           }
 
-          JSONArray aliases = jsonObject.get("aliases") == null ? new JSONArray()
-              : (JSONArray) jsonObject.get("aliases");
+          JSONArray aliases =
+              jsonObject.get("aliases") == null
+                  ? new JSONArray()
+                  : (JSONArray) jsonObject.get("aliases");
           String cveName = aliases.size() == 0 ? "UNKNOWN" : aliases.get(0).toString();
           JSONObject database_specific =
-              jsonObject.get("database_specific") == null ? new JSONObject()
+              jsonObject.get("database_specific") == null
+                  ? new JSONObject()
                   : (JSONObject) jsonObject.get("database_specific");
-          String severity = database_specific.get("severity") == null ? "UNKNOWN"
-              : database_specific.get("severity").toString();
-          String cwe_ids = database_specific.get("cwe_ids") == null ? "UNKNOWN"
-              : database_specific.get("cwe_ids").toString();
+          String severity =
+              database_specific.get("severity") == null
+                  ? "UNKNOWN"
+                  : database_specific.get("severity").toString();
+          String cwe_ids =
+              database_specific.get("cwe_ids") == null
+                  ? "UNKNOWN"
+                  : database_specific.get("cwe_ids").toString();
           cveObject.put("name", cveName.replaceAll("[\"]", ""));
           cveObject.put("severity", severity.replaceAll("[\"]", ""));
           cveObject.put("cwe_ids", cwe_ids.replaceAll("[\"]", ""));
@@ -96,8 +101,10 @@ public class OsvProceeding {
             JSONObject affected = (JSONObject) obj;
             JSONObject pkg = (JSONObject) affected.get("package");
             String packageName = (String) pkg.get("name");
-            JSONArray versions = affected.get("versions") == null ? new JSONArray()
-                : (JSONArray) affected.get("versions");
+            JSONArray versions =
+                affected.get("versions") == null
+                    ? new JSONArray()
+                    : (JSONArray) affected.get("versions");
             for (Object versionObj : versions) {
               String version = versionObj.toString();
               String key = packageName + ":" + version;
@@ -132,7 +139,8 @@ public class OsvProceeding {
     dir.mkdirs();
     try {
       URL url = new URL(OSV_DATA_URL);
-      try (InputStream in = url.openStream(); ZipInputStream zipIn = new ZipInputStream(in)) {
+      try (InputStream in = url.openStream();
+          ZipInputStream zipIn = new ZipInputStream(in)) {
 
         ZipEntry entry;
         byte[] buffer = new byte[1024];
@@ -140,8 +148,8 @@ public class OsvProceeding {
         while ((entry = zipIn.getNextEntry()) != null) {
           String filePath = dataPath + File.separator + entry.getName();
           if (!entry.isDirectory()) {
-            try (BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream(filePath))) {
+            try (BufferedOutputStream bos =
+                new BufferedOutputStream(new FileOutputStream(filePath))) {
               int read;
               while ((read = zipIn.read(buffer)) != -1) {
                 bos.write(buffer, 0, read);
@@ -165,7 +173,6 @@ public class OsvProceeding {
     return new File(dataPath);
   }
 
-
   public Path createInput4Coral() throws IOException {
     System.out.println("Create coral file");
     List<String> cveEntires = new ArrayList<>();
@@ -182,16 +189,20 @@ public class OsvProceeding {
           JSONParser parser = new JSONParser();
           JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(file));
           JSONObject cveObject = new JSONObject();
-          String published = jsonObject.get("published") == null ? "UNKNOWN"
-              : jsonObject.get("published").toString();
+          String published =
+              jsonObject.get("published") == null
+                  ? "UNKNOWN"
+                  : jsonObject.get("published").toString();
           // filter
           Instant parse = Instant.parse(published);
           if (parse.isAfter(filterAfter)) {
             continue;
           }
 
-          JSONArray aliases = jsonObject.get("aliases") == null ? new JSONArray()
-              : (JSONArray) jsonObject.get("aliases");
+          JSONArray aliases =
+              jsonObject.get("aliases") == null
+                  ? new JSONArray()
+                  : (JSONArray) jsonObject.get("aliases");
           String cveName =
               aliases.size() == 0 ? jsonObject.get("id").toString() : aliases.get(0).toString();
           cveName = cveName.replaceAll("[\"]", "");
@@ -200,8 +211,10 @@ public class OsvProceeding {
             JSONObject affected = (JSONObject) obj;
             JSONObject pkg = (JSONObject) affected.get("package");
             String packageName = (String) pkg.get("name");
-            JSONArray versions = affected.get("versions") == null ? new JSONArray()
-                : (JSONArray) affected.get("versions");
+            JSONArray versions =
+                affected.get("versions") == null
+                    ? new JSONArray()
+                    : (JSONArray) affected.get("versions");
             for (Object versionObj : versions) {
               String version = versionObj.toString();
               String key = packageName + ":" + version;
@@ -219,7 +232,4 @@ public class OsvProceeding {
     }
     return Paths.get(coralFile);
   }
-
-
 }
-

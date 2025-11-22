@@ -186,7 +186,5 @@ public class MvnPipeline {
   private record InvokerProjectResult(
       String projectName,
       MavenInvokerProject mavenInvokerProject,
-      Triple<Integer, String, String> invocationResult) {
-
-  }
+      Triple<Integer, String, String> invocationResult) {}
 }

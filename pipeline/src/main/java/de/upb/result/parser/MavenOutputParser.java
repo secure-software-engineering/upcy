@@ -25,14 +25,19 @@ public class MavenOutputParser {
   public static class TestResult {
     @CsvBindByName(column = "testsRun")
     private int testsRun;
+
     @CsvBindByName(column = "failures")
     private int failures;
+
     @CsvBindByName(column = "errors")
     private int errors;
+
     @CsvBindByName(column = "skipped")
     private int skipped;
+
     @CsvBindByName(column = "timeElapsed")
     private String timeElapsed;
+
     private List<String> failedTests = new ArrayList<>();
 
     public int getTestsRun() {
@@ -114,12 +119,12 @@ public class MavenOutputParser {
 
     private List<String> errors = new ArrayList<>();
     private List<String> warnings = new ArrayList<>();
+
     @CsvBindByName(column = "buildTime")
     private String buildTime;
-    private List<String> compiledFiles = new ArrayList<>();
-    @CsvRecurse
-    private TestResult testResult = new TestResult();
 
+    private List<String> compiledFiles = new ArrayList<>();
+    @CsvRecurse private TestResult testResult = new TestResult();
 
     public boolean isSuccess() {
       return success;
@@ -152,7 +157,6 @@ public class MavenOutputParser {
     public TestResult getTestResult() {
       return testResult;
     }
-
 
     @Override
     public String toString() {
@@ -191,12 +195,13 @@ public class MavenOutputParser {
     Pattern compilingPattern = Pattern.compile("Compiling \\d+ source files? to (.*)");
 
     // Test patterns
-    Pattern testSummaryPattern = Pattern.compile(
-        "Tests run:\\s+(\\d+),\\s+Failures:\\s+(\\d+),\\s+Errors:\\s+(\\d+),\\s+Skipped:\\s+(\\d+)");
-    Pattern testTimePattern = Pattern.compile(
-        "Tests run:\\s+\\d+.*Time elapsed:\\s+([\\d.]+\\s*s?)");
-    Pattern failedTestPattern = Pattern.compile(
-        "(.*?)\\s+Time elapsed:\\s+[\\d.]+.*<<<\\s+(FAILURE|ERROR)");
+    Pattern testSummaryPattern =
+        Pattern.compile(
+            "Tests run:\\s+(\\d+),\\s+Failures:\\s+(\\d+),\\s+Errors:\\s+(\\d+),\\s+Skipped:\\s+(\\d+)");
+    Pattern testTimePattern =
+        Pattern.compile("Tests run:\\s+\\d+.*Time elapsed:\\s+([\\d.]+\\s*s?)");
+    Pattern failedTestPattern =
+        Pattern.compile("(.*?)\\s+Time elapsed:\\s+[\\d.]+.*<<<\\s+(FAILURE|ERROR)");
     Pattern testResultsPattern = Pattern.compile("Results\\s*:");
 
     boolean inTestResults = false;
@@ -265,14 +270,14 @@ public class MavenOutputParser {
     return result;
   }
 
-
   public static void writeResultsToCsv(String filePath, List<BuildResult> buildResultList)
       throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
 
     try (FileWriter writer = new FileWriter(filePath)) {
-      StatefulBeanToCsv<BuildResult> beanToCsv = new StatefulBeanToCsvBuilder<BuildResult>(writer)
-          .withApplyQuotesToAll(false) // optional
-          .build();
+      StatefulBeanToCsv<BuildResult> beanToCsv =
+          new StatefulBeanToCsvBuilder<BuildResult>(writer)
+              .withApplyQuotesToAll(false) // optional
+              .build();
 
       beanToCsv.write(buildResultList);
     }
@@ -295,7 +300,10 @@ public class MavenOutputParser {
       // find the files
       try (Stream<Path> stream = Files.walk(resultsFolder)) {
         logfiles =
-            stream.filter(file -> Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
+            stream
+                .filter(
+                    file ->
+                        Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
                 .collect(Collectors.toSet());
       }
       List<BuildResult> buildResultList = new ArrayList<>();
@@ -306,9 +314,11 @@ public class MavenOutputParser {
       }
 
       writeResultsToCsv(
-          Paths.get(projectPath).resolve("results_" + mavenBuildAndTest + ".csv").toAbsolutePath()
-              .toString(), buildResultList);
-
+          Paths.get(projectPath)
+              .resolve("results_" + mavenBuildAndTest + ".csv")
+              .toAbsolutePath()
+              .toString(),
+          buildResultList);
 
     } catch (Exception e) {
       System.err.println("Error " + e.getMessage());
