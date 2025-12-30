@@ -2,6 +2,7 @@ package tools;
 
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.base.mvn.MavenInvokerProject.BuildToolException;
+import de.upb.upcy.base.mvn.MavenInvokerProject.JDK_MVN_DOCKER_IMAGE;
 import de.upb.upcy.pipeline.NaiveUpdateStep;
 import de.upb.upcy.pipeline.PomFileUtil;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import org.apache.maven.project.MavenProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MvnPipeline {
+public class MvnJDK8Pipeline {
 
   public static class MavenPipelineTool implements PipelineTool {
 
@@ -37,9 +38,9 @@ public class MvnPipeline {
         Map<String, List<NaiveUpdateStep>> naiveUpdatesStepsPerModule)
         throws Exception {
 
-      MavenInvokerProject.USE_BASH = true;
+      MavenInvokerProject.USE_BASH = false;
 
-      MvnPipeline mvnPipeline = new MvnPipeline(projectName, projectDir.resolve("pom.xml"));
+      MvnJDK8Pipeline mvnPipeline = new MvnJDK8Pipeline(projectName, projectDir.resolve("pom.xml"));
       List<InvokerProjectResult> run = mvnPipeline.run();
       for (InvokerProjectResult entry : run) {
         // write the log to a file
@@ -53,16 +54,16 @@ public class MvnPipeline {
 
     @Override
     public String getName() {
-      return "MavenBuildAndTest";
+      return "MavenJDK8BuildAndTest";
     }
   }
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MvnPipeline.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MvnJDK8Pipeline.class);
   private final String projectName;
   private final Path projectPomFile;
   private final ExecutorService executorService;
 
-  public MvnPipeline(String projectName, Path projectPomFile) {
+  public MvnJDK8Pipeline(String projectName, Path projectPomFile) {
 
     this.projectName = projectName;
     this.projectPomFile = projectPomFile;
@@ -74,12 +75,12 @@ public class MvnPipeline {
       LOGGER.error("Could not find pom file: {}", projectPomFile.toAbsolutePath());
     }
 
-    MavenInvokerProject.USE_BASH = false;
     LOGGER.info("Working on project: {}", projectPomFile);
 
     // run mvn compile install, to ease graph generation for aggregator projects
     // mvn clean compile install -DskipTests -Dmaven.test.skip=true
-    MavenInvokerProject mavenInvokerProject = new MavenInvokerProject(projectPomFile);
+    MavenInvokerProject mavenInvokerProject =
+        new MavenInvokerProject(projectPomFile, JDK_MVN_DOCKER_IMAGE.CORRETTO8);
     Triple<Integer, String, String> integerStringStringTriple = null;
     try {
       integerStringStringTriple =
@@ -93,8 +94,8 @@ public class MvnPipeline {
       }
       LOGGER.info("Successfully build initial with clean compile install");
 
-    } catch (MavenInvokerProject.BuildToolException e) {
-      LOGGER.error("Could not build pom file: {}", projectPomFile.toAbsolutePath());
+    } catch (BuildToolException e) {
+      LOGGER.error("Could not build pom file: {}, e", projectPomFile.toAbsolutePath(), e);
 
       return Collections.singletonList(
           new InvokerProjectResult(
@@ -180,7 +181,8 @@ public class MvnPipeline {
     }
     LOGGER.info("Running on file: {}, with projectName: {}", f.toAbsolutePath(), newProjectName);
 
-    MavenInvokerProject mavenInvokerProject = new MavenInvokerProject(f);
+    MavenInvokerProject mavenInvokerProject =
+        new MavenInvokerProject(f, JDK_MVN_DOCKER_IMAGE.CORRETTO8);
     Triple<Integer, String, String> compile = mavenInvokerProject.compile();
 
     return new InvokerProjectResult(newProjectName, mavenInvokerProject, compile);

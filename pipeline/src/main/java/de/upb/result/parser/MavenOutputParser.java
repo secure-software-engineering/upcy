@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 public class MavenOutputParser {
 
   public static class TestResult {
+
     @CsvBindByName(column = "testsRun")
     private int testsRun;
 
@@ -306,10 +307,12 @@ public class MavenOutputParser {
                         Files.isRegularFile(file) && file.getFileName().toString().endsWith(".log"))
                 .collect(Collectors.toSet());
       }
+
       List<BuildResult> buildResultList = new ArrayList<>();
       for (Path logfile : logfiles) {
         BuildResult buildResult = parseMavenOutput(Files.readString(logfile));
-        buildResult.setProjectName(logfile.getFileName().toString().replace("/", ":"));
+        buildResult.setProjectName(
+            logfile.getFileName().toString().replace("/", ":").replace(".log", ""));
         buildResultList.add(buildResult);
       }
 

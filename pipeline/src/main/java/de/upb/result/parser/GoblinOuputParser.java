@@ -24,10 +24,13 @@ import java.util.stream.Stream;
 public class GoblinOuputParser {
 
   public static class GoblinUpdateEdge {
+
     @CsvBindByName(column = "startNode")
     private String startNode;
+
     @CsvBindByName(column = "targetNode")
     private String targetNode;
+
     @CsvBindByName(column = "projectName")
     private String projectName;
 
@@ -119,7 +122,9 @@ public class GoblinOuputParser {
       for (Path logfile : logfiles) {
         List<GoblinUpdateEdge> buildResult = parseLogFile(logfile.toAbsolutePath().toString());
         buildResult.forEach(
-            x -> x.setProjectName(logfile.getFileName().toString().replace("/", ":")));
+            x ->
+                x.setProjectName(
+                    logfile.getFileName().toString().replace("_", ":").replace(".log", "")));
         buildResultList.addAll(buildResult);
       }
 

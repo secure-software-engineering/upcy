@@ -51,7 +51,7 @@ public class ToolPipeline {
     this.tool = tool;
   }
 
-  public void execute() throws IOException {
+  public void execute() throws IOException, CheckoutException {
     List<Path> updateStepCSVForProjects = this.getUpdateStepCSVFiles(benchmark_updatesteps_folder);
 
     String toolName = tool.getName();
@@ -130,6 +130,8 @@ public class ToolPipeline {
 
       } catch (Exception e) {
         LOGGER.error("Failed to checkout file");
+        Files.writeString(failedIndicatorFile, e.getMessage());
+        throw new CheckoutException("Failed to checkout file", e);
       }
     }
     LOGGER.info("Waiting for jobs to finish...");
@@ -226,5 +228,12 @@ public class ToolPipeline {
 
     // run tool
     this.tool.runTool(projectDir, projectName, csvFile, outputDir, naiveUpdateStepsPerModule);
+  }
+
+  public static class CheckoutException extends GitAPIException {
+
+    protected CheckoutException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

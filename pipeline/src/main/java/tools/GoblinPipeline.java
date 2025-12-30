@@ -27,8 +27,6 @@ public class GoblinPipeline implements PipelineTool {
       Map<String, List<NaiveUpdateStep>> naiveUpdatesStepsPerModule)
       throws Exception {
 
-    String projectNameClear = projectName.replaceAll(":", "_");
-
     // invoke goblin update -- in container
     if (!Files.exists(outputDir)) {
       Files.createDirectories(outputDir);
@@ -45,7 +43,7 @@ public class GoblinPipeline implements PipelineTool {
           "docker",
           "run",
           "-e",
-          "LOGFILE=" + projectNameClear,
+          "LOGFILE=" + projectName,
           "--rm",
           "--network=" + dockerNetwork,
           "-v",
@@ -71,16 +69,16 @@ public class GoblinPipeline implements PipelineTool {
 
     if (exitCode == IOUtils.TIMEOUT_EXITCODE) {
       throw new BuildToolException(
-          String.format(
-              "Process timed out when executing '%s'.\nStdout: %s\nStderr: %s",
-              Joiner.on(" ").join(bashCmd), output, error),
-          null);
+          String.format("Process timed out when executing '%s'.", String.join(" ", bashCmd)),
+          output,
+          error);
     } else if (exitCode != 0) {
       throw new BuildToolException(
           String.format(
-              "Process returned a non-zero exit code %d when executing '%s'.\nStdout: %s\nStderr: %s",
-              exitCode, Joiner.on(" ").join(bashCmd), output, error),
-          null);
+              "Process returned a non-zero exit code %d when executing '%s'.",
+              exitCode, String.join(" ", bashCmd)),
+          output,
+          error);
     }
   }
 

@@ -23,23 +23,26 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CAROLOutputParser {
+public class CoralOutputParser {
 
   private static ObjectMapper objectMapper = new ObjectMapper();
 
-
   // Data model classes
   public static class CarolDependencyUpdate {
+
     @CsvBindByName(column = "artifact")
     private String artifact;
+
     @CsvBindByName(column = "oldVersion")
     private String oldVersion;
+
     @CsvBindByName(column = "newVersion")
     private String newVersion;
+
     @CsvBindByName(column = "projectName")
     private String projectName;
-    public CarolDependencyUpdate() {
-    }
+
+    public CarolDependencyUpdate() {}
 
     public CarolDependencyUpdate(String artifact, String oldVersion, String newVersion) {
       this.artifact = artifact;
@@ -73,11 +76,17 @@ public class CAROLOutputParser {
 
     @Override
     public String toString() {
-      return "Dependency{" +
-          "artifact='" + artifact + '\'' +
-          ", oldVersion='" + oldVersion + '\'' +
-          ", newVersion='" + newVersion + '\'' +
-          '}';
+      return "Dependency{"
+          + "artifact='"
+          + artifact
+          + '\''
+          + ", oldVersion='"
+          + oldVersion
+          + '\''
+          + ", newVersion='"
+          + newVersion
+          + '\''
+          + '}';
     }
 
     public String getProjectName() {
@@ -89,9 +98,9 @@ public class CAROLOutputParser {
     }
   }
 
-
   // Parse JSON into data model using Jackson
-  public static List<CarolDependencyUpdate> parseJsonWithJackson(String jsonFilePath) throws IOException {
+  public static List<CarolDependencyUpdate> parseJsonWithJackson(String jsonFilePath)
+      throws IOException {
     List<CarolDependencyUpdate> dependencies = new ArrayList<>();
 
     JsonNode rootNode = objectMapper.readTree(new File(jsonFilePath));
@@ -111,8 +120,8 @@ public class CAROLOutputParser {
     return dependencies;
   }
 
-
-  public static void writeResultsToCsv(String filePath, List<CarolDependencyUpdate> carolDependencyUpdateUpdateList)
+  public static void writeResultsToCsv(
+      String filePath, List<CarolDependencyUpdate> carolDependencyUpdateUpdateList)
       throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
 
     try (FileWriter writer = new FileWriter(filePath)) {
@@ -136,7 +145,7 @@ public class CAROLOutputParser {
       } else {
         throw new IllegalArgumentException("Missing project path");
       }
-      String carolUpdater = "Carol";
+      String carolUpdater = "Coral";
       Path resultsFolder = Paths.get(projectPath).resolve(carolUpdater);
       Set<Path> logfiles = new HashSet<>();
       // find the files
@@ -145,15 +154,18 @@ public class CAROLOutputParser {
             stream
                 .filter(
                     file ->
-                        Files.isRegularFile(file) && file.getFileName().toString()
-                            .endsWith(".json"))
+                        Files.isRegularFile(file)
+                            && file.getFileName().toString().endsWith(".json"))
                 .collect(Collectors.toSet());
       }
       List<CarolDependencyUpdate> buildResultList = new ArrayList<>();
       for (Path logfile : logfiles) {
-        List<CarolDependencyUpdate> buildResult = parseJsonWithJackson(logfile.toAbsolutePath().toString());
+        List<CarolDependencyUpdate> buildResult =
+            parseJsonWithJackson(logfile.toAbsolutePath().toString());
         buildResult.forEach(
-            x -> x.setProjectName(logfile.getFileName().toString().replace("/", ":")));
+            x ->
+                x.setProjectName(
+                    logfile.getFileName().toString().replace("/", ":").replace(".json", "")));
         buildResultList.addAll(buildResult);
       }
 

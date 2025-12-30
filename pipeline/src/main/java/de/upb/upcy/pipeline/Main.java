@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.CoralPipeline;
 import tools.GoblinPipeline;
+import tools.MvnJDK8Pipeline;
 import tools.MvnPipeline.MavenPipelineTool;
 import tools.PipelineTool;
 
@@ -23,6 +24,9 @@ public class Main {
       case "mvn":
         LOGGER.info("Choose Maven Tool");
         return new MavenPipelineTool();
+      case "mvn8":
+        LOGGER.info("Choose Maven + JDK8 Tool");
+        return new MvnJDK8Pipeline.MavenPipelineTool();
       case "goblin":
         LOGGER.info("Choose Goblin Tool");
         return new GoblinPipeline();
