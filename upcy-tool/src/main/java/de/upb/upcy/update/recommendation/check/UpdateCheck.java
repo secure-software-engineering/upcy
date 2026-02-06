@@ -4,9 +4,11 @@ import com.google.common.collect.Lists;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
-import de.upb.upcy.update.recommendation.BlossomGraphCreator;
-import de.upb.upcy.update.recommendation.CustomEdge;
-import de.upb.upcy.update.recommendation.NodeMatchUtil;
+import de.upb.upcy.base.graph.GraphModel.Artifact;
+import de.upb.upcy.update.graph.BlossomGraphCreator;
+import de.upb.upcy.update.graph.CustomEdge;
+import de.upb.upcy.update.graph.GraphGenerator;
+import de.upb.upcy.update.graph.NodeMatchUtil;
 import de.upb.upcy.update.recommendation.compatabilityparser.CompatabilityCheck;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
 import de.upb.upcy.update.recommendation.compatabilityparser.Parser;
@@ -59,25 +61,22 @@ public class UpdateCheck {
   private final boolean treatBlossomNodesAsCompatible;
 
   public UpdateCheck(
-      Graph<String, CustomEdge> shrinkedCG,
-      Graph<GraphModel.Artifact, GraphModel.Dependency> dependencyGraph,
-      Collection<GraphModel.Artifact> unUpdatedNodes,
+      GraphGenerator graphGenerator,
+      Collection<Artifact> unUpdatedNodes,
       Graph<MvnArtifactNode, DependencyRelation> updateSubGraph,
-      NodeMatchUtil nodeMatchUtil,
-      BlossomGraphCreator blossomGraphCreator,
       boolean treatBlossomNodesAsCompatible) {
-    this.shrinkedCG = shrinkedCG;
-    this.dependencyGraph = dependencyGraph;
+    this.shrinkedCG = graphGenerator.getShrinkedCG();
+    this.dependencyGraph = graphGenerator.getDependencyDefaultDirectedGraph();
     this.updateSubGraph = updateSubGraph;
-    this.nodeMatchUtil = nodeMatchUtil;
+    this.nodeMatchUtil = graphGenerator.getNodeMatchUtil();
     this.projectRoot =
-        dependencyGraph.vertexSet().stream()
-            .filter(x -> dependencyGraph.inDegreeOf(x) == 0)
+        this.dependencyGraph.vertexSet().stream()
+            .filter(x -> this.dependencyGraph.inDegreeOf(x) == 0)
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("Could not find project root"));
-    this.shortestPathDepTree = new BFSShortestPath<>(dependencyGraph);
+    this.shortestPathDepTree = new BFSShortestPath<>(this.dependencyGraph);
     this.unUpdatedNodes = unUpdatedNodes;
-    this.blossomGraphCreator = blossomGraphCreator;
+    this.blossomGraphCreator = graphGenerator.getBlossomGraphCreator();
     // if the blossom nodes are updated together, they are compatible
     this.treatBlossomNodesAsCompatible = treatBlossomNodesAsCompatible;
   }

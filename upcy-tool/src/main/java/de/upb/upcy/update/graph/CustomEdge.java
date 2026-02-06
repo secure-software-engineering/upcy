@@ -1,4 +1,4 @@
-package de.upb.upcy.update.recommendation;
+package de.upb.upcy.update.graph;
 
 import java.util.ArrayList;
 import java.util.List;

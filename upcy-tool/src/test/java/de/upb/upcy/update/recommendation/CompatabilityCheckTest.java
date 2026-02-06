@@ -3,6 +3,7 @@ package de.upb.upcy.update.recommendation;
 import static org.junit.Assert.*;
 
 import de.upb.upcy.base.commons.CompressionUtils;
+import de.upb.upcy.update.graph.CustomEdge;
 import de.upb.upcy.update.recommendation.check.UpdateCheck;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
 import de.upb.upcy.update.recommendation.compatabilityparser.Parser;

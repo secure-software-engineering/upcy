@@ -1,8 +1,7 @@
 package de.upb.upcy.update.recommendation.cypher;
 
 import de.upb.upcy.base.graph.GraphModel;
-import de.upb.upcy.update.recommendation.BlossomGraphCreator;
-import de.upb.upcy.update.recommendation.NodeMatchUtil;
+import de.upb.upcy.update.graph.BlossomGraphCreator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,23 +21,23 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Class to construct cypher queries for finding a solution to the min-(s,t)-cut */
+/**
+ * Class to construct cypher queries for finding a solution to the min-(s,t)-cut
+ */
 public class CypherQueryCreator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CypherQueryCreator.class);
   private final BlossomGraphCreator blossomGraphCreator;
-  private final NodeMatchUtil nodeMatchUtil;
 
-  public CypherQueryCreator(BlossomGraphCreator blossomGraphCreator, NodeMatchUtil nodeMatchUtil) {
+  public CypherQueryCreator(BlossomGraphCreator blossomGraphCreator) {
     this.blossomGraphCreator = blossomGraphCreator;
-    this.nodeMatchUtil = nodeMatchUtil;
   }
 
   /**
    * NOTE: Only checks for COMPILE dependency (see constraint of the relation)
    *
-   * @param depGraphfinal the dependency graph
-   * @param sinkPartition the sink partition
+   * @param depGraphfinal         the dependency graph
+   * @param sinkPartition         the sink partition
    * @param libToUpdateInDepGraph the library to update
    * @return the cypher query
    */

@@ -1,4 +1,4 @@
-package de.upb.upcy.update.recommendation;
+package de.upb.upcy.update.graph;
 
 import java.util.Collection;
 import java.util.HashSet;

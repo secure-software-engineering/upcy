@@ -1,4 +1,4 @@
-package de.upb.upcy.update.recommendation;
+package de.upb.upcy.update.graph;
 
 import com.google.common.base.Stopwatch;
 import java.io.File;

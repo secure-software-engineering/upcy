@@ -2,6 +2,7 @@ package de.upb.upcy.update.recommendation;
 
 import static org.junit.Assert.assertEquals;
 
+import de.upb.upcy.update.graph.NodeMatchUtil;
 import org.junit.Test;
 
 public class NodeMatchUtilTest {

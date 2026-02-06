@@ -8,19 +8,16 @@ import de.upb.maven.ecosystem.persistence.dao.Neo4JConnector;
 import de.upb.maven.ecosystem.persistence.model.DependencyRelation;
 import de.upb.maven.ecosystem.persistence.model.MvnArtifactNode;
 import de.upb.upcy.base.graph.GraphModel;
-import de.upb.upcy.base.graph.GraphParser;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.base.mvn.MavenSearchAPIClient;
+import de.upb.upcy.update.graph.GraphGenerator;
 import de.upb.upcy.update.recommendation.check.UpdateCheck;
 import de.upb.upcy.update.recommendation.check.Violation;
 import de.upb.upcy.update.recommendation.cypher.CypherQueryCreator;
 import de.upb.upcy.update.recommendation.exception.CompatabilityComputeException;
 import de.upb.upcy.update.recommendation.exception.EmptyCallGraphException;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,16 +35,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.jgrapht.Graph;
 import org.jgrapht.alg.flow.EdmondsKarpMFImpl;
 import org.jgrapht.alg.interfaces.MinimumSTCutAlgorithm;
 import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.AsUndirectedGraph;
 import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.DefaultAttribute;
-import org.jgrapht.nio.dot.DOTExporter;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.neo4j.driver.Driver;
 import org.slf4j.Logger;
@@ -66,16 +58,11 @@ public class RecommendationAlgorithm {
   private final DaoMvnArtifactNode doaMvnArtifactNode;
 
   private final MavenInvokerProject mavenInvokerProject;
-  private NodeMatchUtil nodeMatchUtil;
+  private final GraphGenerator graphGenerator;
   private Pair<DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency>, GraphModel>
       pairGraph;
-  private Graph<String, CustomEdge> shrinkedCG;
   private boolean isInitialized;
-  private DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency> depGraph;
-  private GraphModel.Artifact rootNode;
 
-  private Graph<GraphModel.Artifact, GraphModel.Dependency> blossemedDepGraph;
-  private BlossomGraphCreator blossomGraphCreator;
   private CypherQueryCreator cypherQueryCreator;
   private String targetGav;
 
@@ -87,7 +74,7 @@ public class RecommendationAlgorithm {
 
     doaMvnArtifactNode = new DoaMvnArtifactNodeImpl(driver);
     this.mavenInvokerProject = mavenInvokerProject;
-    this.pairGraph = getDepGraph(depGraphJsonFile);
+    this.graphGenerator = new GraphGenerator(depGraphJsonFile);
     this.isInitialized = false;
   }
 
@@ -100,11 +87,6 @@ public class RecommendationAlgorithm {
     return !StringUtils.contains(artifact.getArtifactId(), "junit");
   }
 
-  public Pair<DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency>, GraphModel>
-      getDepGraph(Path jsonDepGraph) throws IOException {
-    pairGraph = GraphParser.parseGraph(jsonDepGraph);
-    return pairGraph;
-  }
 
   public void initProject() throws MavenInvokerProject.BuildToolException {
     if (this.isInitialized) {
@@ -112,62 +94,9 @@ public class RecommendationAlgorithm {
     } else {
       this.mavenInvokerProject.initialize();
       Collection<String> moduleClassPath = this.mavenInvokerProject.getClassPath();
-      depGraph = this.pairGraph.getLeft();
-      rootNode =
-          depGraph.vertexSet().stream()
-              .filter(v -> depGraph.inDegreeOf(v) == 0)
-              .findFirst()
-              .orElseThrow(() -> new IllegalStateException("Could not find root node"));
+      graphGenerator.build(moduleClassPath);
 
-      this.nodeMatchUtil = new NodeMatchUtil(rootNode);
-      try {
-        this.nodeMatchUtil.computeJarAndClassMapping(moduleClassPath);
-      } catch (IOException e) {
-        LOGGER.error("Failed computing class mapping", e);
-      }
-
-      final String rootNodeGav = this.nodeMatchUtil.toGav(rootNode);
-
-      // get the applications / rootNodes packages
-      final Set<String> classFQNs = nodeMatchUtil.getGavToClasses().get(rootNodeGav);
-      Set<String> applicationPkgs = Collections.emptySet();
-      if (classFQNs == null || classFQNs.isEmpty()) {
-        LOGGER.error("Empty Class names for application");
-      } else {
-        applicationPkgs =
-            classFQNs.stream()
-                .map(
-                    fqn -> {
-                      final int index = fqn.lastIndexOf(".");
-                      if (index > 0) {
-                        return fqn.substring(0, index);
-                      }
-                      return fqn;
-                    })
-                .collect(Collectors.toSet());
-      }
-      // separate into classpath and application classes
-      List<String> classPath = new ArrayList<>();
-      List<String> applicationClassDir = new ArrayList<>();
-      for (String cpEntry : moduleClassPath) {
-
-        final Path path = Paths.get(cpEntry);
-        if (Files.isDirectory(path)) {
-          applicationClassDir.add(cpEntry);
-        } else {
-          classPath.add(cpEntry);
-        }
-      }
-
-      // build blossom graph
-      blossomGraphCreator = new BlossomGraphCreator(depGraph, rootNode);
-      blossemedDepGraph = blossomGraphCreator.buildBlossomDepGraph();
-      cypherQueryCreator = new CypherQueryCreator(blossomGraphCreator, nodeMatchUtil);
-
-      // compute the input
-      CGBuilder cgBuilder = new CGBuilder(classPath, applicationClassDir, nodeMatchUtil);
-      cgBuilder.computeCGs(applicationPkgs);
-      shrinkedCG = cgBuilder.getShrinkedCG();
+      cypherQueryCreator = new CypherQueryCreator(graphGenerator.getBlossomGraphCreator());
 
       // set isInitialized
       this.isInitialized = true;
@@ -188,14 +117,16 @@ public class RecommendationAlgorithm {
     this.initProject();
 
     final GraphModel.Artifact libToUpdateInDepGraph =
-        nodeMatchUtil
-            .findInDepGraphByGav(gavOfLibraryToUpdate, depGraph, true)
+        graphGenerator.getNodeMatchUtil()
+            .findInDepGraphByGav(gavOfLibraryToUpdate,
+                graphGenerator.getDependencyDefaultDirectedGraph(), true)
             .orElseThrow(
                 () ->
                     new IllegalStateException(
                         "Cannot find library to update with gav: " + gavOfLibraryToUpdate));
 
-    if (shrinkedCG == null || shrinkedCG.vertexSet().isEmpty() || shrinkedCG.edgeSet().isEmpty()) {
+    if (graphGenerator.getShrinkedCG() == null || graphGenerator.getShrinkedCG().vertexSet()
+        .isEmpty() || graphGenerator.getShrinkedCG().edgeSet().isEmpty()) {
       LOGGER.error("Empty shrinked CG");
     }
 
@@ -214,7 +145,7 @@ public class RecommendationAlgorithm {
     // get the weight -- if weight 0-- we are done
     if (simpleUpdateSuggestion.getStatus() == UpdateSuggestion.SuggestionStatus.SUCCESS
         && (simpleUpdateSuggestion.getViolations() == null
-            || simpleUpdateSuggestion.getViolations().isEmpty())) {
+        || simpleUpdateSuggestion.getViolations().isEmpty())) {
       LOGGER.info("Simple Update does not produce any violations, Done");
       return Collections.singletonList(simpleUpdateSuggestion);
     }
@@ -240,15 +171,7 @@ public class RecommendationAlgorithm {
     // only check on compile and included edges, since we want to find out which libraries are
     // included by the libToUpdate
 
-    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded =
-        new AsSubgraph<>(
-            depGraph,
-            depGraph.vertexSet().stream()
-                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                .collect(Collectors.toSet()),
-            depGraph.edgeSet().stream()
-                .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
-                .collect(Collectors.toSet()));
+    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded = graphGenerator.depSubGraphOnlyCompileAndIncluded();
     BreadthFirstIterator<GraphModel.Artifact, GraphModel.Dependency> breadthFirstIterator =
         new BreadthFirstIterator<>(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
     while (breadthFirstIterator.hasNext()) {
@@ -295,13 +218,9 @@ public class RecommendationAlgorithm {
     }
 
     UpdateCheck updateCheck =
-        new UpdateCheck(
-            shrinkedCG,
-            depGraph,
+        new UpdateCheck(graphGenerator,
             unUpdatedNodes,
             updateSubGraph,
-            nodeMatchUtil,
-            blossomGraphCreator,
             false);
 
     final Collection<Violation> simpleUpdateViolations;
@@ -358,25 +277,10 @@ public class RecommendationAlgorithm {
 
     LOGGER.info("Compute Min-Cut solution");
     List<UpdateSuggestion> updateSuggestions = new ArrayList<>();
-    // export graph for debugging
-    final DOTExporter<GraphModel.Artifact, GraphModel.Dependency> objectObjectDOTExporter =
-        new DOTExporter<>();
-    objectObjectDOTExporter.setVertexAttributeProvider(
-        v -> {
-          Map<String, Attribute> map = new LinkedHashMap<>();
-          map.put("label", DefaultAttribute.createAttribute(v.toGav()));
-          return map;
-        });
 
-    objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
-
-    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
-        new AsSubgraph<>(
-            blossemedDepGraph,
-            blossemedDepGraph.vertexSet().stream()
-                .filter(RecommendationAlgorithm::isRelevantCompileDependency)
-                .collect(Collectors.toSet()),
-            blossemedDepGraph.edgeSet());
+    // export for debugging
+    graphGenerator.exportBlossomDepGraphToDot();
+    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly = this.graphGenerator.blossomGraphCompileOnly();
 
     // use the blossom-graph for the min-cut
     // init all edge weights
@@ -416,14 +320,16 @@ public class RecommendationAlgorithm {
       unDirectedDepGraph.setEdgeWeight(curEdge, edgeWeight + 1);
 
       GraphModel.Artifact libToUpdateForMincut = libToUpdateInDepGraph;
-      final GraphModel.Artifact blossomNode =
-          blossomGraphCreator.getBlossomNode(libToUpdateForMincut);
+      final GraphModel.Artifact blossomNode = graphGenerator.getBlossomNodeFor(
+          libToUpdateForMincut);
+
       if (blossomNode != null) {
         libToUpdateForMincut = blossomNode;
       }
 
       final double cutWeight =
-          minimumSTCutAlgorithm.calculateMinCut(rootNode, libToUpdateForMincut);
+          minimumSTCutAlgorithm.calculateMinCut(graphGenerator.getRootNode(),
+              libToUpdateForMincut);
       if (cutWeight <= minCutWeight) {
         // should only be possible in the first round
         minCutWeight = cutWeight;
@@ -457,8 +363,8 @@ public class RecommendationAlgorithm {
         Set<GraphModel.Artifact> expandedNodes = new HashSet<>();
         for (Iterator<GraphModel.Artifact> iter = sourcePartition.iterator(); iter.hasNext(); ) {
           GraphModel.Artifact sourceNode = iter.next();
-          final Collection<GraphModel.Artifact> artifacts =
-              blossomGraphCreator.expandBlossomNode(sourceNode);
+          final Collection<GraphModel.Artifact> artifacts = graphGenerator.expandBlossomNodeFor(
+              sourceNode);
           if (artifacts != null && !artifacts.isEmpty()) {
             // we have a blossom node
             expandedNodes.addAll(artifacts);
@@ -477,7 +383,7 @@ public class RecommendationAlgorithm {
         LOGGER.info("Neo4j Query Started");
         String neo4jQuery =
             cypherQueryCreator.createNeo4JQuery(
-                depGraph,
+                graphGenerator.getDependencyDefaultDirectedGraph(),
                 sinkPartition,
                 new HashSet<>(cuttedNodes),
                 libToUpdateInDepGraph,
@@ -534,13 +440,9 @@ public class RecommendationAlgorithm {
       minCutUpdateSuggestion.setCutWeight((int) Math.round(minCutWeight));
 
       UpdateCheck updateCheck =
-          new UpdateCheck(
-              shrinkedCG,
-              depGraph,
+          new UpdateCheck(graphGenerator,
               sourcePartition,
               updateSubGraph,
-              nodeMatchUtil,
-              blossomGraphCreator,
               true);
       Collection<Violation> updateViolations = null;
       try {
@@ -549,7 +451,7 @@ public class RecommendationAlgorithm {
         for (GraphModel.Artifact cutNode : cuttedNodes) {
           {
             final Collection<GraphModel.Artifact> artifacts =
-                blossomGraphCreator.expandBlossomNode(cutNode);
+                graphGenerator.expandBlossomNodeFor(cutNode);
             if (artifacts != null) {
               // is a blossom node
               expandedCuttedNodes.addAll(artifacts);
@@ -598,7 +500,7 @@ public class RecommendationAlgorithm {
         // expand the cutted nodes, so get all the blossoms
         for (GraphModel.Artifact artifact : cuttedNodes) {
           final Collection<GraphModel.Artifact> artifacts =
-              blossomGraphCreator.expandBlossomNode(artifact);
+              graphGenerator.expandBlossomNodeFor(artifact);
           if (artifacts != null && !artifacts.isEmpty()) {
             expandedCuttedNodes.addAll(artifacts);
           } else {
@@ -609,8 +511,8 @@ public class RecommendationAlgorithm {
         for (MvnArtifactNode sinkRootNode : rootNodesOfSubGraph) {
 
           // the gav in the update subgraph
-          final Optional<GraphModel.Artifact> first =
-              nodeMatchUtil.findInDepGraph(sinkRootNode, depGraph, false);
+          final Optional<GraphModel.Artifact> first = graphGenerator.findInDefaultDirectedDependencyGraph(sinkRootNode,false);
+
 
           if (!first.isPresent()) {
             LOGGER.error(
@@ -638,11 +540,11 @@ public class RecommendationAlgorithm {
         // find the corresponding nodes for the cutted nodes, and check those for updates, too
         for (GraphModel.Artifact artifact : expandedCuttedNodes) {
           Optional<MvnArtifactNode> first =
-              nodeMatchUtil.findInNeo4jGraph(artifact, finalUpdateSubGraph, false);
+              graphGenerator.getNodeMatchUtil().findInNeo4jGraph(artifact, finalUpdateSubGraph, false);
 
           if (!first.isPresent()) {
             // for deps migrated to other group or artifact
-            first = nodeMatchUtil.findLooseInNeo4jGraph(artifact, finalUpdateSubGraph, false);
+            first = graphGenerator.getNodeMatchUtil().findLooseInNeo4jGraph(artifact, finalUpdateSubGraph, false);
           }
           if (first.isPresent()) {
             String tGav =
