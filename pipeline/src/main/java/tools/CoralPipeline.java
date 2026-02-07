@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import de.upb.upcy.base.mvn.IOUtils;
 import de.upb.upcy.base.mvn.MavenInvokerProject;
 import de.upb.upcy.base.mvn.MavenInvokerProject.BuildToolException;
+import de.upb.upcy.base.mvn.MavenInvokerProject.JDK_MVN_DOCKER_IMAGE;
 import de.upb.upcy.pipeline.NaiveUpdateStep;
 import de.upb.upcy.pipeline.Utils;
 import java.nio.file.Files;
@@ -39,13 +40,12 @@ public class CoralPipeline implements PipelineTool {
     }
 
     // compile project
-    MavenInvokerProject.USE_BASH = true;
+    MavenInvokerProject.USE_BASH = false;
     MavenInvokerProject mavenInvokerProject =
-        new MavenInvokerProject(projectDir.resolve("pom.xml"));
+        new MavenInvokerProject(projectDir.resolve("pom.xml"), JDK_MVN_DOCKER_IMAGE.CORRETTO8);
     mavenInvokerProject.packageMvn();
 
     // find the jar file
-    ;
     List<Path> jars;
     try (Stream<Path> s = Files.walk(projectDir)) {
       jars =
@@ -91,30 +91,31 @@ public class CoralPipeline implements PipelineTool {
     String dockerNetwork = dockerNetworkBy.get("Name").asText();
 
     String[] bashCmd =
-        new String[] {
-          "docker",
-          "run",
-          "-e",
-          "SEMSERVER_HOST=coral-semserver",
-          "-e",
-          "MONGO_HOST=coral-mongodb",
-          "-e",
-          "WEAVER_HOST=goblin-weaver",
-          "--rm",
-          "--network=" + dockerNetwork,
-          "-v",
-          outputDir.toAbsolutePath().toString() + ":/usr/src/app/remediation_results/",
-          "-v",
-          projectDir.toAbsolutePath().toString() + ":/app/",
-          "ghcr.io/anddann/coral:0.9",
-          "/app/",
-          "/app/" + jarfilelocation
+        new String[]{
+            "docker",
+            "run",
+            "-e",
+            "SEMSERVER_HOST=coral-semserver",
+            "-e",
+            "MONGO_HOST=coral-mongodb",
+            "-e",
+            "WEAVER_HOST=goblin-weaver",
+            "-e",
+            "M2_REPO=/root/.m2/repository/",
+            "--rm",
+            "--network=" + dockerNetwork,
+            "-v",
+            outputDir.toAbsolutePath().toString() + ":/usr/src/app/remediation_results/",
+            "-v",
+            projectDir.toAbsolutePath().toString() + ":/app/",
+            "ghcr.io/anddann/coral:0.9",
+            "/app/",
+            "/app/" + jarfilelocation
         };
 
     LOGGER.info(
         "Running Coral command '{}' on ",
-        Joiner.on(" ").join(bashCmd),
-        projectDir.toAbsolutePath().toString());
+        Joiner.on(" ").join(bashCmd));
 
     ProcessBuilder processBuilder = new ProcessBuilder(bashCmd);
 

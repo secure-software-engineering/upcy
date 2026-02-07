@@ -1,5 +1,6 @@
 package de.upb.upcy.pipeline;
 
+import de.upb.upcy.pipeline.ToolPipeline.CheckoutException;
 import java.io.IOException;
 import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +39,7 @@ public class Main {
     }
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, CheckoutException {
     System.out.println(org.slf4j.impl.StaticLoggerBinder.getSingleton().getLoggerFactoryClassStr());
     System.out.println(org.apache.logging.log4j.LogManager.getFactory().getClass());
     LoggerContext ctx = (LoggerContext) LogManager.getContext(false);

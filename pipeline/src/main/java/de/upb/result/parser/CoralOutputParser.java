@@ -42,6 +42,17 @@ public class CoralOutputParser {
     @CsvBindByName(column = "projectName")
     private String projectName;
 
+    public String getProjectDir() {
+      return projectDir;
+    }
+
+    public void setProjectDir(String projectDir) {
+      this.projectDir = projectDir;
+    }
+
+    @CsvBindByName(column = "projectDir")
+    private String projectDir;
+
     public CarolDependencyUpdate() {}
 
     public CarolDependencyUpdate(String artifact, String oldVersion, String newVersion) {
@@ -163,9 +174,11 @@ public class CoralOutputParser {
         List<CarolDependencyUpdate> buildResult =
             parseJsonWithJackson(logfile.toAbsolutePath().toString());
         buildResult.forEach(
-            x ->
+            x ->{
                 x.setProjectName(
-                    logfile.getFileName().toString().replace("/", ":").replace(".json", "")));
+                    logfile.getFileName().toString().replace("/", ":").replace(".json", ""));
+              x.setProjectDir(logfile.getParent().getFileName().toString());
+            });
         buildResultList.addAll(buildResult);
       }
 

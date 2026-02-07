@@ -124,6 +124,17 @@ public class MavenOutputParser {
     @CsvBindByName(column = "buildTime")
     private String buildTime;
 
+    public String getProjectDir() {
+      return projectDir;
+    }
+
+    public void setProjectDir(String projectDir) {
+      this.projectDir = projectDir;
+    }
+
+    @CsvBindByName(column = "projectDir")
+    private String projectDir;
+
     private List<String> compiledFiles = new ArrayList<>();
     @CsvRecurse private TestResult testResult = new TestResult();
 
@@ -313,6 +324,7 @@ public class MavenOutputParser {
         BuildResult buildResult = parseMavenOutput(Files.readString(logfile));
         buildResult.setProjectName(
             logfile.getFileName().toString().replace("/", ":").replace(".log", ""));
+        buildResult.setProjectDir(logfile.getParent().getFileName().toString());
         buildResultList.add(buildResult);
       }
 

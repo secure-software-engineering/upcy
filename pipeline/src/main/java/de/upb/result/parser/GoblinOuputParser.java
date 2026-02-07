@@ -34,6 +34,17 @@ public class GoblinOuputParser {
     @CsvBindByName(column = "projectName")
     private String projectName;
 
+    public String getProjectDir() {
+      return projectDir;
+    }
+
+    public void setProjectDir(String projectDir) {
+      this.projectDir = projectDir;
+    }
+
+    @CsvBindByName(column = "projectDir")
+    private String projectDir;
+
     public GoblinUpdateEdge(String startNode, String targetNode) {
       this.startNode = startNode;
       this.targetNode = targetNode;
@@ -122,9 +133,11 @@ public class GoblinOuputParser {
       for (Path logfile : logfiles) {
         List<GoblinUpdateEdge> buildResult = parseLogFile(logfile.toAbsolutePath().toString());
         buildResult.forEach(
-            x ->
-                x.setProjectName(
-                    logfile.getFileName().toString().replace("_", ":").replace(".log", "")));
+            x -> {
+              x.setProjectName(
+                  logfile.getFileName().toString().replace("_", ":").replace(".log", ""));
+              x.setProjectDir(logfile.getParent().getFileName().toString());
+            });
         buildResultList.addAll(buildResult);
       }
 

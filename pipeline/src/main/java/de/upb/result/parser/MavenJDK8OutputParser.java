@@ -41,6 +41,7 @@ public class MavenJDK8OutputParser extends MavenOutputParser {
         BuildResult buildResult = parseMavenOutput(Files.readString(logfile));
         buildResult.setProjectName(
             logfile.getFileName().toString().replace("/", ":").replace(".log", ""));
+        buildResult.setProjectDir(logfile.getParent().getFileName().toString());
         buildResultList.add(buildResult);
       }
 

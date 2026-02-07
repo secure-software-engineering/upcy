@@ -123,7 +123,11 @@ public class ToolPipeline {
                 try {
                   Files.writeString(failedIndicatorFile, e.getMessage());
                 } catch (IOException ex) {
+                  try {
+                    Files.writeString(failedIndicatorFile, e.getMessage());
+                  } catch (IOException exc) {
 
+                  }
                 }
               }
             });
@@ -131,7 +135,7 @@ public class ToolPipeline {
       } catch (Exception e) {
         LOGGER.error("Failed to checkout file");
         Files.writeString(failedIndicatorFile, e.getMessage());
-        throw new CheckoutException("Failed to checkout file", e);
+        //throw new CheckoutException("Failed to checkout file", e);
       }
     }
     LOGGER.info("Waiting for jobs to finish...");
