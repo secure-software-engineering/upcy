@@ -33,28 +33,9 @@ public class MainUnifedDepGrapGenerator {
     // create the Options
     Options options = new Options();
     options.addOption(
-        Option.builder("module")
-            .longOpt("maven-module")
-            .desc("path to the maven module")
-            .hasArg()
-            .required(true)
-            .build());
-    options.addOption(
         Option.builder("dg")
             .longOpt("dependency-graph")
             .desc("the generated dependency graph as json")
-            .hasArg()
-            .required(true)
-            .build());
-    options.addOption(
-        Option.builder("gav")
-            .desc("the GAV of the dependency to update in the form - group:artifact:version")
-            .hasArg()
-            .required(true)
-            .build());
-    options.addOption(
-        Option.builder("targetGav")
-            .desc("the target GAV in the form - group:artifact:version")
             .hasArg()
             .required(true)
             .build());

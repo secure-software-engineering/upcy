@@ -7,7 +7,7 @@ import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.base.graph.GraphModel.Artifact;
 import de.upb.upcy.update.graph.BlossomGraphCreator;
 import de.upb.upcy.update.graph.CustomEdge;
-import de.upb.upcy.update.graph.GraphGenerator;
+import de.upb.upcy.update.graph.GraphManager;
 import de.upb.upcy.update.graph.NodeMatchUtil;
 import de.upb.upcy.update.recommendation.compatabilityparser.CompatabilityCheck;
 import de.upb.upcy.update.recommendation.compatabilityparser.Incompatibility;
@@ -61,14 +61,14 @@ public class UpdateCheck {
   private final boolean treatBlossomNodesAsCompatible;
 
   public UpdateCheck(
-      GraphGenerator graphGenerator,
+      GraphManager graphManager,
       Collection<Artifact> unUpdatedNodes,
       Graph<MvnArtifactNode, DependencyRelation> updateSubGraph,
       boolean treatBlossomNodesAsCompatible) {
-    this.shrinkedCG = graphGenerator.getShrinkedCG();
-    this.dependencyGraph = graphGenerator.getDependencyDefaultDirectedGraph();
+    this.shrinkedCG = graphManager.getShrinkedCG();
+    this.dependencyGraph = graphManager.getDependencyDefaultDirectedGraph();
     this.updateSubGraph = updateSubGraph;
-    this.nodeMatchUtil = graphGenerator.getNodeMatchUtil();
+    this.nodeMatchUtil = graphManager.getNodeMatchUtil();
     this.projectRoot =
         this.dependencyGraph.vertexSet().stream()
             .filter(x -> this.dependencyGraph.inDegreeOf(x) == 0)
@@ -76,7 +76,7 @@ public class UpdateCheck {
             .orElseThrow(() -> new IllegalStateException("Could not find project root"));
     this.shortestPathDepTree = new BFSShortestPath<>(this.dependencyGraph);
     this.unUpdatedNodes = unUpdatedNodes;
-    this.blossomGraphCreator = graphGenerator.getBlossomGraphCreator();
+    this.blossomGraphCreator = graphManager.getBlossomGraphCreator();
     // if the blossom nodes are updated together, they are compatible
     this.treatBlossomNodesAsCompatible = treatBlossomNodesAsCompatible;
   }
@@ -212,7 +212,7 @@ public class UpdateCheck {
 
       // case 1. check if it has a match in the dep graph
       final Optional<GraphModel.Artifact> inDepGraph =
-          nodeMatchUtil.findInDepGraph(nodeInUpdateSubGraph, dependencyGraph, false);
+          NodeMatchUtil.findInDepGraph(nodeInUpdateSubGraph, dependencyGraph, false);
       if (inDepGraph.isPresent()) {
         GraphModel.Artifact orgDepNode = inDepGraph.get();
         // we have to check if we overwrite (or replace it in the dep graph)
@@ -306,7 +306,7 @@ public class UpdateCheck {
       GraphPath<MvnArtifactNode, DependencyRelation> pathAfterTransformation = null;
       for (GraphModel.Artifact node : initUpdatedDepNodes) {
         final Optional<MvnArtifactNode> inNeo4jGraph =
-            nodeMatchUtil.findInNeo4jGraph(node, updateSubGraph, false);
+            NodeMatchUtil.findInNeo4jGraph(node, updateSubGraph, false);
         if (!inNeo4jGraph.isPresent()) {
           LOGGER.error("Could not find the updated Node in the Dep");
           continue;

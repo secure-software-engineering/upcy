@@ -5,7 +5,6 @@ import de.upb.upcy.base.graph.GraphModel;
 import de.upb.upcy.base.graph.GraphModel.Artifact;
 import de.upb.upcy.base.graph.GraphModel.Dependency;
 import de.upb.upcy.base.graph.GraphParser;
-import de.upb.upcy.update.recommendation.RecommendationAlgorithm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.AsSubgraph;
@@ -30,9 +30,18 @@ import org.jgrapht.nio.dot.DOTExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GraphGenerator {
+public class GraphManager {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(GraphGenerator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(GraphManager.class);
+
+  // kick out non-compile dependencies and junit
+  public static boolean isRelevantCompileDependency(Artifact artifact) {
+    final boolean compile = artifact.getScopes().contains("compile");
+    if (!compile) {
+      return false;
+    }
+    return !StringUtils.contains(artifact.getArtifactId(), "junit");
+  }
 
 
   public Path getDepGraphJsonFile() {
@@ -67,7 +76,7 @@ public class GraphGenerator {
   private Graph<Artifact, Dependency> blossemedDepGraph;
   private Graph<String, CustomEdge> shrinkedCG;
 
-  public GraphGenerator(Path depGraphJsonFile) throws IOException {
+  public GraphManager(Path depGraphJsonFile) throws IOException {
     this.depGraphJsonFile = depGraphJsonFile;
     Pair<DefaultDirectedGraph<Artifact, Dependency>, GraphModel> defaultDirectedGraphGraphModelPair = GraphParser.parseGraph(
         depGraphJsonFile);
@@ -105,7 +114,7 @@ public class GraphGenerator {
       LOGGER.error("Failed computing class mapping", e);
     }
 
-    final String rootNodeGav = this.nodeMatchUtil.toGav(rootNode);
+    final String rootNodeGav = NodeMatchUtil.toGav(rootNode);
 
     // get the applications / rootNodes packages
     final Set<String> classFQNs = nodeMatchUtil.getGavToClasses().get(rootNodeGav);
@@ -156,7 +165,7 @@ public class GraphGenerator {
     return new AsSubgraph<>(
         this.dependencyDefaultDirectedGraph,
         this.dependencyDefaultDirectedGraph.vertexSet().stream()
-            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+            .filter(GraphManager::isRelevantCompileDependency)
             .collect(Collectors.toSet()),
         this.dependencyDefaultDirectedGraph.edgeSet().stream()
             .filter(x -> x.getResolution() == GraphModel.ResolutionType.INCLUDED)
@@ -167,7 +176,7 @@ public class GraphGenerator {
    return new AsSubgraph<>(
         blossemedDepGraph,
         blossemedDepGraph.vertexSet().stream()
-            .filter(RecommendationAlgorithm::isRelevantCompileDependency)
+            .filter(GraphManager::isRelevantCompileDependency)
             .collect(Collectors.toSet()),
         blossemedDepGraph.edgeSet());
   }
@@ -181,7 +190,7 @@ public class GraphGenerator {
   }
 
   public Optional<Artifact> findInDefaultDirectedDependencyGraph(MvnArtifactNode sinkRootNode, boolean withVersion){
-    return nodeMatchUtil.findInDepGraph(sinkRootNode, this.dependencyDefaultDirectedGraph, withVersion);
+    return NodeMatchUtil.findInDepGraph(sinkRootNode, this.dependencyDefaultDirectedGraph, withVersion);
   }
 
   public void exportBlossomDepGraphToDot(){

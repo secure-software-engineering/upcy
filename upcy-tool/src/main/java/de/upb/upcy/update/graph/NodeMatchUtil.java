@@ -89,7 +89,7 @@ public class NodeMatchUtil {
     return GavToClasses;
   }
 
-  public Optional<String> findInDepGraphByGav(
+  public static Optional<String> findInDepGraphByGav(
       GraphModel.Artifact artifact, Graph<String, CustomEdge> in, boolean withVersion) {
 
     return in.vertexSet().stream().filter(x -> match(artifact, x, withVersion)).findFirst();
@@ -119,7 +119,7 @@ public class NodeMatchUtil {
     return fileName;
   }
 
-  public String toGav(GraphModel.Artifact node) {
+  public static String toGav(GraphModel.Artifact node) {
     return String.join(":", node.getGroupId(), node.getArtifactId(), node.getVersion());
   }
 
@@ -164,7 +164,7 @@ public class NodeMatchUtil {
     return String.join(":", group, artifact, version);
   }
 
-  public Optional<GraphModel.Artifact> findInDepGraphByGav(
+  public static Optional<GraphModel.Artifact> findInDepGraphByGav(
       String gavOfLibraryToUpdate,
       DefaultDirectedGraph<GraphModel.Artifact, GraphModel.Dependency> depGraph,
       boolean withVersion) {
@@ -174,7 +174,7 @@ public class NodeMatchUtil {
         .findFirst();
   }
 
-  public Optional<MvnArtifactNode> findInNeo4jGraph(
+  public static Optional<MvnArtifactNode> findInNeo4jGraph(
       GraphModel.Artifact depToCheck,
       Graph<MvnArtifactNode, DependencyRelation> in,
       boolean withVersion) {
@@ -194,7 +194,7 @@ public class NodeMatchUtil {
         .findFirst();
   }
 
-  public Optional<MvnArtifactNode> findLooseInNeo4jGraph(
+  public static Optional<MvnArtifactNode> findLooseInNeo4jGraph(
       GraphModel.Artifact depToCheck,
       Graph<MvnArtifactNode, DependencyRelation> in,
       boolean withVersion) {
@@ -214,7 +214,7 @@ public class NodeMatchUtil {
         .findFirst();
   }
 
-  public Optional<GraphModel.Artifact> findInDepGraph(
+  public static Optional<GraphModel.Artifact> findInDepGraph(
       MvnArtifactNode mvnArtifactNode,
       Graph<GraphModel.Artifact, GraphModel.Dependency> dependencyGraph,
       boolean withVersion) {
@@ -235,7 +235,7 @@ public class NodeMatchUtil {
         .findFirst();
   }
 
-  public boolean match(GraphModel.Artifact x, String libInCG, boolean withVersion) {
+  public static boolean match(GraphModel.Artifact x, String libInCG, boolean withVersion) {
     final String[] split = libInCG.split(":");
 
     if (split.length < 3 && withVersion) {
