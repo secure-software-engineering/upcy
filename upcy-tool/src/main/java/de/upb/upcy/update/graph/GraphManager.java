@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public class GraphManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphManager.class);
+  private boolean initialized;
 
   // kick out non-compile dependencies and junit
   public static boolean isRelevantCompileDependency(Artifact artifact) {
@@ -105,59 +106,63 @@ public class GraphManager {
   }
 
   public void build(Collection<String> runtimeClassPath) {
-    // compute the unified dependency and blossom graph
 
-    this.nodeMatchUtil = new NodeMatchUtil(getRootNode());
-    try {
-      this.nodeMatchUtil.computeJarAndClassMapping(runtimeClassPath);
-    } catch (IOException e) {
-      LOGGER.error("Failed computing class mapping", e);
-    }
+    if (!this.initialized) {
+      // compute the unified dependency and blossom graph
 
-    final String rootNodeGav = NodeMatchUtil.toGav(rootNode);
-
-    // get the applications / rootNodes packages
-    final Set<String> classFQNs = nodeMatchUtil.getGavToClasses().get(rootNodeGav);
-    Set<String> applicationPkgs = Collections.emptySet();
-    if (classFQNs == null || classFQNs.isEmpty()) {
-      LOGGER.error("Empty Class names for application");
-    } else {
-      applicationPkgs =
-          classFQNs.stream()
-              .map(
-                  fqn -> {
-                    final int index = fqn.lastIndexOf(".");
-                    if (index > 0) {
-                      return fqn.substring(0, index);
-                    }
-                    return fqn;
-                  })
-              .collect(Collectors.toSet());
-    }
-    // separate into classpath and application classes
-    List<String> classPath = new ArrayList<>();
-    List<String> applicationClassDir = new ArrayList<>();
-    for (String cpEntry : runtimeClassPath) {
-
-      final Path path = Paths.get(cpEntry);
-      if (Files.isDirectory(path)) {
-        applicationClassDir.add(cpEntry);
-      } else {
-        classPath.add(cpEntry);
+      this.nodeMatchUtil = new NodeMatchUtil(getRootNode());
+      try {
+        this.nodeMatchUtil.computeJarAndClassMapping(runtimeClassPath);
+      } catch (IOException e) {
+        LOGGER.error("Failed computing class mapping", e);
       }
+
+      final String rootNodeGav = NodeMatchUtil.toGav(rootNode);
+
+      // get the applications / rootNodes packages
+      final Set<String> classFQNs = nodeMatchUtil.getGavToClasses().get(rootNodeGav);
+      Set<String> applicationPkgs = Collections.emptySet();
+      if (classFQNs == null || classFQNs.isEmpty()) {
+        LOGGER.error("Empty Class names for application");
+      } else {
+        applicationPkgs =
+            classFQNs.stream()
+                .map(
+                    fqn -> {
+                      final int index = fqn.lastIndexOf(".");
+                      if (index > 0) {
+                        return fqn.substring(0, index);
+                      }
+                      return fqn;
+                    })
+                .collect(Collectors.toSet());
+      }
+      // separate into classpath and application classes
+      List<String> classPath = new ArrayList<>();
+      List<String> applicationClassDir = new ArrayList<>();
+      for (String cpEntry : runtimeClassPath) {
+
+        final Path path = Paths.get(cpEntry);
+        if (Files.isDirectory(path)) {
+          applicationClassDir.add(cpEntry);
+        } else {
+          classPath.add(cpEntry);
+        }
+      }
+
+      // build blossom graph
+      blossomGraphCreator = new BlossomGraphCreator(this.dependencyDefaultDirectedGraph, rootNode);
+      blossemedDepGraph = blossomGraphCreator.buildBlossomDepGraph();
+
+      // compute the input
+
+      //FIXME: this the actual --> unified dependency GRAPH
+      CGBuilder cgBuilder = new CGBuilder(classPath, applicationClassDir, nodeMatchUtil);
+      cgBuilder.computeCGs(applicationPkgs);
+      shrinkedCG = cgBuilder.getShrinkedCG();
+    } else {
+      return;
     }
-
-    // build blossom graph
-    blossomGraphCreator = new BlossomGraphCreator(this.dependencyDefaultDirectedGraph, rootNode);
-    blossemedDepGraph = blossomGraphCreator.buildBlossomDepGraph();
-
-    // compute the input
-
-    //FIXME: this the actual --> unified dependency GRAPH
-    CGBuilder cgBuilder = new CGBuilder(classPath, applicationClassDir, nodeMatchUtil);
-    cgBuilder.computeCGs(applicationPkgs);
-    shrinkedCG = cgBuilder.getShrinkedCG();
-
 
   }
 
@@ -172,8 +177,11 @@ public class GraphManager {
             .collect(Collectors.toSet()));
   }
 
-  public AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly(){
-   return new AsSubgraph<>(
+  public AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly() {
+    if (!this.initialized) {
+      throw new IllegalStateException("The graph must be build first");
+    }
+    return new AsSubgraph<>(
         blossemedDepGraph,
         blossemedDepGraph.vertexSet().stream()
             .filter(GraphManager::isRelevantCompileDependency)
@@ -181,19 +189,30 @@ public class GraphManager {
         blossemedDepGraph.edgeSet());
   }
 
-  public Artifact getBlossomNodeFor(Artifact libToUpdateForMincut){
+  public Artifact getBlossomNodeFor(Artifact libToUpdateForMincut) {
+    if (!this.initialized) {
+      throw new IllegalStateException("The graph must be build first");
+    }
     return blossomGraphCreator.getBlossomNode(libToUpdateForMincut);
   }
 
-  public Collection<GraphModel.Artifact> expandBlossomNodeFor(GraphModel.Artifact artifact ){
+  public Collection<GraphModel.Artifact> expandBlossomNodeFor(GraphModel.Artifact artifact) {
+    if (!this.initialized) {
+      throw new IllegalStateException("The graph must be build first");
+    }
     return blossomGraphCreator.expandBlossomNode(artifact);
   }
 
-  public Optional<Artifact> findInDefaultDirectedDependencyGraph(MvnArtifactNode sinkRootNode, boolean withVersion){
-    return NodeMatchUtil.findInDepGraph(sinkRootNode, this.dependencyDefaultDirectedGraph, withVersion);
+  public Optional<Artifact> findInDefaultDirectedDependencyGraph(MvnArtifactNode sinkRootNode,
+      boolean withVersion) {
+    return NodeMatchUtil.findInDepGraph(sinkRootNode, this.dependencyDefaultDirectedGraph,
+        withVersion);
   }
 
-  public void exportBlossomDepGraphToDot(){
+  public void exportBlossomDepGraphToDot() {
+    if (!this.initialized) {
+      throw new IllegalStateException("The graph must be build first");
+    }
     // export graph for debugging
     final DOTExporter<Artifact, Dependency> objectObjectDOTExporter =
         new DOTExporter<>();
@@ -204,7 +223,6 @@ public class GraphManager {
           return map;
         });
     objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
-
   }
 
 
