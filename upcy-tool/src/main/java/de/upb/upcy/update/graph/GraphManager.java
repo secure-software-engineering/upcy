@@ -6,6 +6,7 @@ import de.upb.upcy.base.graph.GraphModel.Artifact;
 import de.upb.upcy.base.graph.GraphModel.Dependency;
 import de.upb.upcy.base.graph.GraphParser;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
+import org.jgrapht.nio.json.JSONExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,6 +225,15 @@ public class GraphManager {
           return map;
         });
     objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
+  }
+
+  public void exportUnifiedDepGraphToJson() throws IOException {
+    if (!this.initialized) {
+      throw new IllegalStateException("The graph must be build first");
+    }
+    CustomUnifiedDepGraphJsonExporter customUnifiedDepGraphJsonExporter = new CustomUnifiedDepGraphJsonExporter();
+    customUnifiedDepGraphJsonExporter.exportGraph(this.shrinkedCG,
+        new FileWriter(new File("unifiedDependencyGraph.json")));
   }
 
 
