@@ -28,7 +28,6 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
-import org.jgrapht.nio.json.JSONExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,6 @@ public class GraphManager {
     }
     return !StringUtils.contains(artifact.getArtifactId(), "junit");
   }
-
 
   public Path getDepGraphJsonFile() {
     return depGraphJsonFile;
@@ -81,8 +79,8 @@ public class GraphManager {
 
   public GraphManager(Path depGraphJsonFile) throws IOException {
     this.depGraphJsonFile = depGraphJsonFile;
-    Pair<DefaultDirectedGraph<Artifact, Dependency>, GraphModel> defaultDirectedGraphGraphModelPair = GraphParser.parseGraph(
-        depGraphJsonFile);
+    Pair<DefaultDirectedGraph<Artifact, Dependency>, GraphModel>
+        defaultDirectedGraphGraphModelPair = GraphParser.parseGraph(depGraphJsonFile);
     graphModel = defaultDirectedGraphGraphModelPair.getValue();
     dependencyDefaultDirectedGraph = defaultDirectedGraphGraphModelPair.getKey();
   }
@@ -94,7 +92,6 @@ public class GraphManager {
   public GraphModel getGraphModel() {
     return graphModel;
   }
-
 
   public GraphModel.Artifact getRootNode() {
     if (this.rootNode == null) {
@@ -158,14 +155,16 @@ public class GraphManager {
 
       // compute the input
 
-      //FIXME: this the actual --> unified dependency GRAPH
+      // FIXME: this the actual --> unified dependency GRAPH
       CGBuilder cgBuilder = new CGBuilder(classPath, applicationClassDir, nodeMatchUtil);
       cgBuilder.computeCGs(applicationPkgs);
       shrinkedCG = cgBuilder.getShrinkedCG();
+
+      // set initialized to true
+      this.initialized = true;
     } else {
       return;
     }
-
   }
 
   public AsSubgraph<Artifact, Dependency> depSubGraphOnlyCompileAndIncluded() {
@@ -205,10 +204,10 @@ public class GraphManager {
     return blossomGraphCreator.expandBlossomNode(artifact);
   }
 
-  public Optional<Artifact> findInDefaultDirectedDependencyGraph(MvnArtifactNode sinkRootNode,
-      boolean withVersion) {
-    return NodeMatchUtil.findInDepGraph(sinkRootNode, this.dependencyDefaultDirectedGraph,
-        withVersion);
+  public Optional<Artifact> findInDefaultDirectedDependencyGraph(
+      MvnArtifactNode sinkRootNode, boolean withVersion) {
+    return NodeMatchUtil.findInDepGraph(
+        sinkRootNode, this.dependencyDefaultDirectedGraph, withVersion);
   }
 
   public void exportBlossomDepGraphToDot() {
@@ -216,8 +215,7 @@ public class GraphManager {
       throw new IllegalStateException("The graph must be build first");
     }
     // export graph for debugging
-    final DOTExporter<Artifact, Dependency> objectObjectDOTExporter =
-        new DOTExporter<>();
+    final DOTExporter<Artifact, Dependency> objectObjectDOTExporter = new DOTExporter<>();
     objectObjectDOTExporter.setVertexAttributeProvider(
         v -> {
           Map<String, Attribute> map = new LinkedHashMap<>();
@@ -227,14 +225,14 @@ public class GraphManager {
     objectObjectDOTExporter.exportGraph(blossemedDepGraph, new File("out.dot"));
   }
 
-  public void exportUnifiedDepGraphToJson() throws IOException {
+  public void exportUnifiedDepGraphToJson(String outputFile) throws IOException {
     if (!this.initialized) {
       throw new IllegalStateException("The graph must be build first");
     }
-    CustomUnifiedDepGraphJsonExporter customUnifiedDepGraphJsonExporter = new CustomUnifiedDepGraphJsonExporter();
-    customUnifiedDepGraphJsonExporter.exportGraph(this.shrinkedCG,
-        new FileWriter(new File("unifiedDependencyGraph.json")));
+//    CustomUnifiedDepGraphJsonExporter customUnifiedDepGraphJsonExporter =
+//        new CustomUnifiedDepGraphJsonExporter();
+    CustomUnifiedDepGraphJSONExporter customUnifiedDepGraphJsonExporter = new CustomUnifiedDepGraphJSONExporter();
+    customUnifiedDepGraphJsonExporter.exportGraph(
+        this.shrinkedCG, new FileWriter(new File(outputFile)));
   }
-
-
 }

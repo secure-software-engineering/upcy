@@ -21,9 +21,7 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Class to construct cypher queries for finding a solution to the min-(s,t)-cut
- */
+/** Class to construct cypher queries for finding a solution to the min-(s,t)-cut */
 public class CypherQueryCreator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CypherQueryCreator.class);
@@ -36,8 +34,8 @@ public class CypherQueryCreator {
   /**
    * NOTE: Only checks for COMPILE dependency (see constraint of the relation)
    *
-   * @param depGraphfinal         the dependency graph
-   * @param sinkPartition         the sink partition
+   * @param depGraphfinal the dependency graph
+   * @param sinkPartition the sink partition
    * @param libToUpdateInDepGraph the library to update
    * @return the cypher query
    */

@@ -79,7 +79,6 @@ public class RecommendationAlgorithm {
     this.isInitialized = false;
   }
 
-
   public void initProject() throws MavenInvokerProject.BuildToolException {
     if (this.isInitialized) {
       return;
@@ -109,16 +108,16 @@ public class RecommendationAlgorithm {
     this.initProject();
 
     final GraphModel.Artifact libToUpdateInDepGraph =
-        NodeMatchUtil
-            .findInDepGraphByGav(gavOfLibraryToUpdate,
-                graphManager.getDependencyDefaultDirectedGraph(), true)
+        NodeMatchUtil.findInDepGraphByGav(
+                gavOfLibraryToUpdate, graphManager.getDependencyDefaultDirectedGraph(), true)
             .orElseThrow(
                 () ->
                     new IllegalStateException(
                         "Cannot find library to update with gav: " + gavOfLibraryToUpdate));
 
-    if (graphManager.getShrinkedCG() == null || graphManager.getShrinkedCG().vertexSet()
-        .isEmpty() || graphManager.getShrinkedCG().edgeSet().isEmpty()) {
+    if (graphManager.getShrinkedCG() == null
+        || graphManager.getShrinkedCG().vertexSet().isEmpty()
+        || graphManager.getShrinkedCG().edgeSet().isEmpty()) {
       LOGGER.error("Empty shrinked CG");
     }
 
@@ -137,7 +136,7 @@ public class RecommendationAlgorithm {
     // get the weight -- if weight 0-- we are done
     if (simpleUpdateSuggestion.getStatus() == UpdateSuggestion.SuggestionStatus.SUCCESS
         && (simpleUpdateSuggestion.getViolations() == null
-        || simpleUpdateSuggestion.getViolations().isEmpty())) {
+            || simpleUpdateSuggestion.getViolations().isEmpty())) {
       LOGGER.info("Simple Update does not produce any violations, Done");
       return Collections.singletonList(simpleUpdateSuggestion);
     }
@@ -163,7 +162,8 @@ public class RecommendationAlgorithm {
     // only check on compile and included edges, since we want to find out which libraries are
     // included by the libToUpdate
 
-    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded = graphManager.depSubGraphOnlyCompileAndIncluded();
+    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> depSubGraphOnlyCompileAndIncluded =
+        graphManager.depSubGraphOnlyCompileAndIncluded();
     BreadthFirstIterator<GraphModel.Artifact, GraphModel.Dependency> breadthFirstIterator =
         new BreadthFirstIterator<>(depSubGraphOnlyCompileAndIncluded, libToUpdateInDepGraph);
     while (breadthFirstIterator.hasNext()) {
@@ -209,11 +209,7 @@ public class RecommendationAlgorithm {
       return simpleUpdateSuggestion;
     }
 
-    UpdateCheck updateCheck =
-        new UpdateCheck(graphManager,
-            unUpdatedNodes,
-            updateSubGraph,
-            false);
+    UpdateCheck updateCheck = new UpdateCheck(graphManager, unUpdatedNodes, updateSubGraph, false);
 
     final Collection<Violation> simpleUpdateViolations;
 
@@ -272,7 +268,8 @@ public class RecommendationAlgorithm {
 
     // export for debugging
     graphManager.exportBlossomDepGraphToDot();
-    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly = this.graphManager.blossomGraphCompileOnly();
+    final AsSubgraph<GraphModel.Artifact, GraphModel.Dependency> blossomGraphCompileOnly =
+        this.graphManager.blossomGraphCompileOnly();
 
     // use the blossom-graph for the min-cut
     // init all edge weights
@@ -312,16 +309,14 @@ public class RecommendationAlgorithm {
       unDirectedDepGraph.setEdgeWeight(curEdge, edgeWeight + 1);
 
       GraphModel.Artifact libToUpdateForMincut = libToUpdateInDepGraph;
-      final GraphModel.Artifact blossomNode = graphManager.getBlossomNodeFor(
-          libToUpdateForMincut);
+      final GraphModel.Artifact blossomNode = graphManager.getBlossomNodeFor(libToUpdateForMincut);
 
       if (blossomNode != null) {
         libToUpdateForMincut = blossomNode;
       }
 
       final double cutWeight =
-          minimumSTCutAlgorithm.calculateMinCut(graphManager.getRootNode(),
-              libToUpdateForMincut);
+          minimumSTCutAlgorithm.calculateMinCut(graphManager.getRootNode(), libToUpdateForMincut);
       if (cutWeight <= minCutWeight) {
         // should only be possible in the first round
         minCutWeight = cutWeight;
@@ -355,8 +350,8 @@ public class RecommendationAlgorithm {
         Set<GraphModel.Artifact> expandedNodes = new HashSet<>();
         for (Iterator<GraphModel.Artifact> iter = sourcePartition.iterator(); iter.hasNext(); ) {
           GraphModel.Artifact sourceNode = iter.next();
-          final Collection<GraphModel.Artifact> artifacts = graphManager.expandBlossomNodeFor(
-              sourceNode);
+          final Collection<GraphModel.Artifact> artifacts =
+              graphManager.expandBlossomNodeFor(sourceNode);
           if (artifacts != null && !artifacts.isEmpty()) {
             // we have a blossom node
             expandedNodes.addAll(artifacts);
@@ -432,10 +427,7 @@ public class RecommendationAlgorithm {
       minCutUpdateSuggestion.setCutWeight((int) Math.round(minCutWeight));
 
       UpdateCheck updateCheck =
-          new UpdateCheck(graphManager,
-              sourcePartition,
-              updateSubGraph,
-              true);
+          new UpdateCheck(graphManager, sourcePartition, updateSubGraph, true);
       Collection<Violation> updateViolations = null;
       try {
         //  -- the update nodes are the cut nodes
@@ -503,8 +495,8 @@ public class RecommendationAlgorithm {
         for (MvnArtifactNode sinkRootNode : rootNodesOfSubGraph) {
 
           // the gav in the update subgraph
-          final Optional<GraphModel.Artifact> first = graphManager.findInDefaultDirectedDependencyGraph(sinkRootNode,false);
-
+          final Optional<GraphModel.Artifact> first =
+              graphManager.findInDefaultDirectedDependencyGraph(sinkRootNode, false);
 
           if (!first.isPresent()) {
             LOGGER.error(

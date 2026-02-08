@@ -91,31 +91,29 @@ public class CoralPipeline implements PipelineTool {
     String dockerNetwork = dockerNetworkBy.get("Name").asText();
 
     String[] bashCmd =
-        new String[]{
-            "docker",
-            "run",
-            "-e",
-            "SEMSERVER_HOST=coral-semserver",
-            "-e",
-            "MONGO_HOST=coral-mongodb",
-            "-e",
-            "WEAVER_HOST=goblin-weaver",
-            "-e",
-            "M2_REPO=/root/.m2/repository/",
-            "--rm",
-            "--network=" + dockerNetwork,
-            "-v",
-            outputDir.toAbsolutePath().toString() + ":/usr/src/app/remediation_results/",
-            "-v",
-            projectDir.toAbsolutePath().toString() + ":/app/",
-            "ghcr.io/anddann/coral:0.9",
-            "/app/",
-            "/app/" + jarfilelocation
+        new String[] {
+          "docker",
+          "run",
+          "-e",
+          "SEMSERVER_HOST=coral-semserver",
+          "-e",
+          "MONGO_HOST=coral-mongodb",
+          "-e",
+          "WEAVER_HOST=goblin-weaver",
+          "-e",
+          "M2_REPO=/root/.m2/repository/",
+          "--rm",
+          "--network=" + dockerNetwork,
+          "-v",
+          outputDir.toAbsolutePath().toString() + ":/usr/src/app/remediation_results/",
+          "-v",
+          projectDir.toAbsolutePath().toString() + ":/app/",
+          "ghcr.io/anddann/coral:0.9",
+          "/app/",
+          "/app/" + jarfilelocation
         };
 
-    LOGGER.info(
-        "Running Coral command '{}' on ",
-        Joiner.on(" ").join(bashCmd));
+    LOGGER.info("Running Coral command '{}' on ", Joiner.on(" ").join(bashCmd));
 
     ProcessBuilder processBuilder = new ProcessBuilder(bashCmd);
 

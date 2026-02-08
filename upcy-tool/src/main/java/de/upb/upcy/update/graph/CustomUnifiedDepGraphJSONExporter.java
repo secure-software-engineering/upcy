@@ -1,29 +1,25 @@
 package de.upb.upcy.update.graph;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.jgrapht.Graph;
 import org.jgrapht.nio.Attribute;
-import org.jgrapht.nio.DefaultAttribute;
-import org.jgrapht.nio.json.JSONExporter;
+import org.jgrapht.nio.AttributeType;
 import soot.SootMethod;
-import soot.jimple.toolkits.callgraph.Edge;
 
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * JSONExporter for graphs with String vertices and CustomEdge edges.
  * Exports the graph structure along with the custom edge data.
  */
-public class CustomUnifiedDepGraphJsonExporter {
+public class CustomUnifiedDepGraphJSONExporter {
 
-  private final JSONExporter<String, CustomEdge> exporter;
+  private final CustomJSONExporter<String, CustomEdge> exporter;
 
-  public CustomUnifiedDepGraphJsonExporter() {
-    this.exporter = new JSONExporter<>();
+  public CustomUnifiedDepGraphJSONExporter() {
+    this.exporter = new CustomJSONExporter<>();
     configureExporter();
   }
 
@@ -41,29 +37,32 @@ public class CustomUnifiedDepGraphJsonExporter {
     exporter.setEdgeAttributeProvider(edge -> {
       Map<String, Attribute> attributes = new LinkedHashMap<>();
 
-      // Add the srcTgtMethods list as a JSON array
+      // Add the srcTgtMethods list as a proper JSON array
       if (edge.getSrcTgtMethods() != null && !edge.getSrcTgtMethods().isEmpty()) {
-        StringBuilder methodsJson = new StringBuilder("[");
+        // Build JSON array manually as a string
+        StringBuilder jsonArray = new StringBuilder("[");
 
         for (int i = 0; i < edge.getSrcTgtMethods().size(); i++) {
           Pair<SootMethod, SootMethod> pair = edge.getSrcTgtMethods().get(i);
 
           if (i > 0) {
-            methodsJson.append(",");
+            jsonArray.append(",");
           }
 
-          methodsJson.append("{");
-          methodsJson.append("\"source\":\"")
+          jsonArray.append("{");
+          jsonArray.append("\"source\":\"")
               .append(escapeJson(getMethodSignature(pair.getLeft())))
               .append("\",");
-          methodsJson.append("\"target\":\"")
+          jsonArray.append("\"target\":\"")
               .append(escapeJson(getMethodSignature(pair.getRight())))
               .append("\"");
-          methodsJson.append("}");
+          jsonArray.append("}");
         }
 
-        methodsJson.append("]");
-        attributes.put("srcTgtMethods", DefaultAttribute.createAttribute(methodsJson.toString()));
+        jsonArray.append("]");
+
+        // Use a custom attribute that returns raw JSON
+        attributes.put("srcTgtMethods", new RawJsonAttribute(jsonArray.toString()));
       }
 
       return attributes;
@@ -108,6 +107,33 @@ public class CustomUnifiedDepGraphJsonExporter {
         .replace("\n", "\\n")
         .replace("\r", "\\r")
         .replace("\t", "\\t");
+  }
+
+  /**
+   * Custom Attribute implementation for raw JSON values
+   * This ensures the JSON array is not double-quoted
+   */
+  private static class RawJsonAttribute implements Attribute {
+    private final String jsonValue;
+
+    public RawJsonAttribute(String jsonValue) {
+      this.jsonValue = jsonValue;
+    }
+
+    @Override
+    public String getValue() {
+      return jsonValue;
+    }
+
+    @Override
+    public AttributeType getType() {
+      return AttributeType.HTML; // Setting to "html" prevents JGraphT from quoting it
+    }
+
+    @Override
+    public String toString() {
+      return jsonValue;
+    }
   }
 
 

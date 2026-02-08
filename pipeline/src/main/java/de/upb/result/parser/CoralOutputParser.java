@@ -174,9 +174,9 @@ public class CoralOutputParser {
         List<CarolDependencyUpdate> buildResult =
             parseJsonWithJackson(logfile.toAbsolutePath().toString());
         buildResult.forEach(
-            x ->{
-                x.setProjectName(
-                    logfile.getFileName().toString().replace("/", ":").replace(".json", ""));
+            x -> {
+              x.setProjectName(
+                  logfile.getFileName().toString().replace("/", ":").replace(".json", ""));
               x.setProjectDir(logfile.getParent().getFileName().toString());
             });
         buildResultList.addAll(buildResult);
