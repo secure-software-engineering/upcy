@@ -35,7 +35,7 @@ public class CGBuilder {
   private final Collection<String> applicationClassDir;
   private final NodeMatchUtil nodeMatchUtil;
   private SootCallGraphAdapter sootCallGraphAdapter;
-  private Graph<String, CustomEdge> shrinkedCG;
+  private DefaultDirectedGraph<String, CustomEdge> shrinkedCG;
 
   public CGBuilder(
       Collection<String> runtimeDir,
@@ -53,7 +53,7 @@ public class CGBuilder {
     return sootCallGraphAdapter;
   }
 
-  public Graph<String, CustomEdge> getShrinkedCG() {
+  public DefaultDirectedGraph<String, CustomEdge> getShrinkedCG() {
     if (shrinkedCG == null) {
       throw new IllegalStateException("Run compute first");
     }
@@ -128,9 +128,9 @@ public class CGBuilder {
     shrinkedCG = shrinkCG(sootCallGraphAdapter);
   }
 
-  private @NotNull Graph<String, CustomEdge> shrinkCG(
+  private @NotNull DefaultDirectedGraph<String, CustomEdge> shrinkCG(
       @NotNull SootCallGraphAdapter sootCallGraphAdapter) {
-    Graph<String, CustomEdge> shrinkedGraph = new DefaultDirectedGraph<>(CustomEdge.class);
+    DefaultDirectedGraph<String, CustomEdge> shrinkedGraph = new DefaultDirectedGraph<>(CustomEdge.class);
     // create the nodes for the jars on the classpath
 
     // create nodes for the jars and the project

@@ -174,6 +174,16 @@ public class NodeMatchUtil {
         .findFirst();
   }
 
+  public static Optional<String> findInUnifiedDepGraph(
+      GraphModel.Artifact artifact,
+      DefaultDirectedGraph<String, CustomEdge> unifiedDepGraph,
+      boolean withVersion) {
+
+    return unifiedDepGraph.vertexSet().stream()
+        .filter(x -> match(artifact, x, withVersion))
+        .findFirst();
+  }
+
   public static Optional<MvnArtifactNode> findInNeo4jGraph(
       GraphModel.Artifact depToCheck,
       Graph<MvnArtifactNode, DependencyRelation> in,

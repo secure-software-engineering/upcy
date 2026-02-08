@@ -1,8 +1,12 @@
 package de.upb.upcy.update.graph;
+
+import de.upb.upcy.base.graph.GraphModel.Artifact;
+import java.util.HashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jgrapht.Graph;
 import org.jgrapht.nio.Attribute;
 import org.jgrapht.nio.AttributeType;
+import org.jgrapht.nio.DefaultAttribute;
 import soot.SootMethod;
 
 import java.io.StringWriter;
@@ -11,14 +15,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * JSONExporter for graphs with String vertices and CustomEdge edges.
- * Exports the graph structure along with the custom edge data.
+ * JSONExporter for graphs with String vertices and CustomEdge edges. Exports the graph structure
+ * along with the custom edge data.
  */
 public class CustomUnifiedDepGraphJSONExporter {
 
   private final CustomJSONExporter<String, CustomEdge> exporter;
+  private final HashMap<String, Artifact> unifiedDepVertexToArtifact;
 
-  public CustomUnifiedDepGraphJSONExporter() {
+  public CustomUnifiedDepGraphJSONExporter(HashMap<String, Artifact> unifiedDepVertexToArtifact) {
+    this.unifiedDepVertexToArtifact = unifiedDepVertexToArtifact;
     this.exporter = new CustomJSONExporter<>();
     configureExporter();
   }
@@ -29,6 +35,30 @@ public class CustomUnifiedDepGraphJSONExporter {
   private void configureExporter() {
     // Vertex ID provider - uses the String vertex value as-is
     exporter.setVertexIdProvider(v -> v);
+
+    exporter.setVertexAttributeProvider(v -> {
+      Map<String, Attribute> attributes = new LinkedHashMap<>();
+
+      StringBuilder jsonArray = new StringBuilder("[");
+
+      Artifact artifact = this.unifiedDepVertexToArtifact.get(v);
+      for (int i = 0; i < artifact.getScopes().size(); i++) {
+        String scope = artifact.getScopes().get(i);
+
+        if (i > 0) {
+          jsonArray.append(",");
+        }
+
+        jsonArray.append("\"" + scope + "\"");
+
+      }
+      jsonArray.append("]");
+
+      // Use a custom attribute that returns raw JSON
+      attributes.put("scope", new RawJsonAttribute(jsonArray.toString()));
+      return attributes;
+
+    });
 
     // Edge ID provider - creates unique IDs for edges
     exporter.setEdgeIdProvider(edge -> String.valueOf(System.identityHashCode(edge)));
@@ -110,10 +140,11 @@ public class CustomUnifiedDepGraphJSONExporter {
   }
 
   /**
-   * Custom Attribute implementation for raw JSON values
-   * This ensures the JSON array is not double-quoted
+   * Custom Attribute implementation for raw JSON values This ensures the JSON array is not
+   * double-quoted
    */
   private static class RawJsonAttribute implements Attribute {
+
     private final String jsonValue;
 
     public RawJsonAttribute(String jsonValue) {

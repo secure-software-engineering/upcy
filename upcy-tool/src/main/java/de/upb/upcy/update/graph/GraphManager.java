@@ -14,12 +14,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.collections.MultiMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jgrapht.Graph;
@@ -30,11 +33,13 @@ import org.jgrapht.nio.DefaultAttribute;
 import org.jgrapht.nio.dot.DOTExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Node;
 
 public class GraphManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GraphManager.class);
   private boolean initialized;
+  private HashMap<String, Artifact> unifiedDepVertexToArtifact;
 
   // kick out non-compile dependencies and junit
   public static boolean isRelevantCompileDependency(Artifact artifact) {
@@ -75,7 +80,8 @@ public class GraphManager {
 
   private BlossomGraphCreator blossomGraphCreator;
   private Graph<Artifact, Dependency> blossemedDepGraph;
-  private Graph<String, CustomEdge> shrinkedCG;
+  private DefaultDirectedGraph<String, CustomEdge> shrinkedCG;
+  private DefaultDirectedGraph<String, CustomEdge> unifiedDepGraph;
 
   public GraphManager(Path depGraphJsonFile) throws IOException {
     this.depGraphJsonFile = depGraphJsonFile;
@@ -160,6 +166,54 @@ public class GraphManager {
       cgBuilder.computeCGs(applicationPkgs);
       shrinkedCG = cgBuilder.getShrinkedCG();
 
+      // build the unified dependency graph, based on the shrinked cg
+      unifiedDepGraph = (DefaultDirectedGraph<String, CustomEdge>) shrinkedCG.clone();
+
+      //  prune self-edges
+
+      for (Iterator<CustomEdge> it = unifiedDepGraph.edgeSet().iterator(); it.hasNext(); ) {
+        CustomEdge customEdge = it.next();
+        String edgeSource = unifiedDepGraph.getEdgeSource(customEdge);
+        String edgeTarget = unifiedDepGraph.getEdgeTarget(customEdge);
+        if (edgeSource == edgeTarget || StringUtils.equals(edgeSource, edgeTarget)) {
+          unifiedDepGraph.removeEdge(customEdge);
+        }
+      }
+
+      unifiedDepVertexToArtifact = new HashMap<>();
+      // compute mapping between ids in unifedDep Graph and the original dependency graph
+      for (String vertex : unifiedDepGraph.vertexSet()) {
+        Optional<Artifact> inDepGraphByGav = NodeMatchUtil.findInDepGraphByGav(vertex,
+            this.dependencyDefaultDirectedGraph, true);
+        unifiedDepVertexToArtifact.put(vertex, inDepGraphByGav.orElse(null));
+      }
+
+      //add "empty" edges from dependency graph
+      for (Dependency dependencyEdge : dependencyDefaultDirectedGraph.edgeSet()) {
+        Artifact edgeSource = dependencyDefaultDirectedGraph.getEdgeSource(dependencyEdge);
+        Artifact edgeTarget = dependencyDefaultDirectedGraph.getEdgeTarget(dependencyEdge);
+
+        Optional<String> inUnifiedDepGraphSource = NodeMatchUtil.findInUnifiedDepGraph(edgeSource,
+            unifiedDepGraph, true);
+
+        Optional<String> inUnifiedDepGraphTarget = NodeMatchUtil.findInUnifiedDepGraph(edgeTarget,
+            unifiedDepGraph, true);
+
+        if (inUnifiedDepGraphSource.isPresent() && inUnifiedDepGraphTarget.isPresent()) {
+          // check if an edge already exists
+          boolean containsEdge = unifiedDepGraph.containsEdge(inUnifiedDepGraphSource.get(),
+              inUnifiedDepGraphTarget.get());
+          if (!containsEdge) {
+            // create empty edge in the graph to represent compile dependencies that have no edge in the callgraph --> that are not called
+            unifiedDepGraph.addEdge(inUnifiedDepGraphSource.get(), inUnifiedDepGraphTarget.get(),
+                new CustomEdge());
+          }
+        } else {
+          LOGGER.error("Could not find dependency in unified dependency graph");
+        }
+
+      }
+
       // set initialized to true
       this.initialized = true;
     } else {
@@ -210,6 +264,7 @@ public class GraphManager {
         sinkRootNode, this.dependencyDefaultDirectedGraph, withVersion);
   }
 
+
   public void exportBlossomDepGraphToDot() {
     if (!this.initialized) {
       throw new IllegalStateException("The graph must be build first");
@@ -229,10 +284,10 @@ public class GraphManager {
     if (!this.initialized) {
       throw new IllegalStateException("The graph must be build first");
     }
-//    CustomUnifiedDepGraphJsonExporter customUnifiedDepGraphJsonExporter =
-//        new CustomUnifiedDepGraphJsonExporter();
-    CustomUnifiedDepGraphJSONExporter customUnifiedDepGraphJsonExporter = new CustomUnifiedDepGraphJSONExporter();
+
+    CustomUnifiedDepGraphJSONExporter customUnifiedDepGraphJsonExporter = new CustomUnifiedDepGraphJSONExporter(
+        unifiedDepVertexToArtifact);
     customUnifiedDepGraphJsonExporter.exportGraph(
-        this.shrinkedCG, new FileWriter(new File(outputFile)));
+        this.unifiedDepGraph, new FileWriter(new File(outputFile)));
   }
 }
